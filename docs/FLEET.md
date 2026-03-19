@@ -1,5 +1,8 @@
 # Fleet setup (OpenManus + openmanus-mcp + pywinauto-mcp)
 
+← [Documentation index](README.md)
+
+
 **openmanus-mcp alone** gives you the bridge MCP server and **this repo’s** webapp (`web_sota`, ports **10768/10769**). It does **not** install Windows UI automation.
 
 For **desktop control** as described in [FLEET_COMPUTER_USE_MCP](https://github.com/sandraschi/mcp-central-docs/blob/main/patterns/FLEET_COMPUTER_USE_MCP.md), you also need **[pywinauto-mcp](https://github.com/sandraschi/pywinauto-mcp)** (separate clone, Windows-only). Register **both** MCP servers in your client (e.g. Cursor).
@@ -64,4 +67,6 @@ Upstream OpenManus ships [mcp.example.json](https://github.com/FoundationAgents/
 
 ## Safety
 
-High risk — VMs, allowlists, human confirmation. See the central pattern doc.
+High risk — VMs, allowlists, human confirmation. See **[SAFETY.md](SAFETY.md)** and the central [FLEET_COMPUTER_USE_MCP](https://github.com/sandraschi/mcp-central-docs/blob/main/patterns/FLEET_COMPUTER_USE_MCP.md) pattern.
+
+← [Documentation index](README.md)

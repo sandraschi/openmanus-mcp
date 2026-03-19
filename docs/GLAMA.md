@@ -1,5 +1,8 @@
 # Glama (`glama.json`)
 
+← [Documentation index](README.md)
+
+
 This repo ships **`glama.json`** at the root for [Glama](https://glama.ai/mcp/servers) discovery and for clients that read the **`mcpServers`** block.
 
 ## Layout

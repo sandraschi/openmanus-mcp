@@ -1,5 +1,7 @@
 # Contributing
 
+**Documentation index:** [docs/README.md](docs/README.md)
+
 ## Setup
 
 ```powershell

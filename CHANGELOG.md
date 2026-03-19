@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **Staggered docs:** [docs/README.md](docs/README.md) hub + [INSTALL](docs/INSTALL.md), [TECH](docs/TECH.md), [MANUS](docs/MANUS.md), [OPENMANUS](docs/OPENMANUS.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [SAFETY](docs/SAFETY.md); root [README.md](README.md) shortened; [SECURITY.md](SECURITY.md)
 - **Fleet automation:** `scripts/Bootstrap-Fleet.ps1`, `docs/FLEET.md`, `examples/cursor-fleet.template.json` — documents pywinauto-mcp requirement and generates Cursor MCP snippet (generated file gitignored)
 - **Fleet onboarding UI:** webapp **Fleet** page + REST `GET/POST /api/v1/fleet/*` — curated catalog in `data/fleet_catalog.json`, clones to `fleet/`, `.fleet_state.json`, optional PowerShell webapp launch (Windows)
 - **`justfile`** (run, api, install, lint, format, test, precommit, build, build-web, start-web, check-glama)
