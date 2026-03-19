@@ -1,0 +1,16 @@
+# openmanus-mcp
+
+## Central docs (mandatory)
+
+Before changing standards or patterns, read **`D:\Dev\repos\mcp-central-docs\`** — start at `standards/AGENT_PROTOCOLS.md`, `operations/WEBAPP_PORTS.md`.
+
+## Stack
+
+- **FastMCP 3.1+** — async `@mcp.tool()`, docstrings only (no duplicate `description=`), `mcp.run()` stdio.
+- **Python 3.12** — `list`, `dict`, `X | None` typing; **Ruff**.
+- **Webapp** — Ports **10768** (API) / **10769** (Vite); **no** 3000, 5173, 8000, 8080.
+- **Shell** — Windows PowerShell: use `;` not `&&`; `Get-ChildItem` not `ls`.
+
+## Product
+
+Wrap **FoundationAgents/OpenManus** (FOSS), not Manus.im. Prefer **local LLM** configs in upstream `config.toml`.
