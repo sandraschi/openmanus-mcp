@@ -21,6 +21,7 @@ htmlcov/
 # Node / Vite
 web_sota/node_modules/
 web_sota/dist/
+web_sota/.vite/
 *.tsbuildinfo
 
 # IDE
