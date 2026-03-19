@@ -21,6 +21,7 @@
 | **Architecture** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | **Safety** | [docs/SAFETY.md](docs/SAFETY.md) |
 | **Fleet** | [docs/FLEET.md](docs/FLEET.md) |
+| **Fleet (big picture)** | [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md) — sandraschi MCP constellation, months of work, MCP + React |
 | **Glama** | [docs/GLAMA.md](docs/GLAMA.md) |
 
 **Meta:** [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md) · [.github/TOPICS.md](.github/TOPICS.md) · [glama.json](glama.json) · [justfile](justfile)
@@ -35,6 +36,10 @@
 
 - **My robots** — unified “my fleet” affordances from **toy/edu rovers** (e.g. [Yahboom](https://www.yahboom.net/)-class robocars) through **home robots** (e.g. **Dreame** / **Xiaomi** robot hoovers / vacuums) to **humanoids** (e.g. **Noetix** / **Bumi**-class Android-based bots), with **parallel virtual bots** (sim / digital twins) and **real hardware** under the same task and safety model. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
 - OpenManus **subprocess runner** + streaming logs, **Cursor snippet** generation from `fleet/`, stronger fleet **health** aggregation — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
+
+## The MCP server fleet (why this repo fits a pattern)
+
+**openmanus-mcp** sits in a **wider fleet** of MCP servers on **[sandraschi @ GitHub](https://github.com/sandraschi)** — built over the **last few months**, much of it **very private** and **under the radar** (“ignored by all and sundry” is a feature, not a bug). The recurring shape is **MCP server + React webapp** (plus API): that combo makes niche but **innovative** stacks (**OpenManus**, **robotics**, **Resonite**, **World Labs**-class tooling, etc.) **approachable** for both agents and humans. Longer read: **[docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md)**.
 
 ## Who perpetrated this
 

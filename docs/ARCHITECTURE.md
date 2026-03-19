@@ -41,7 +41,7 @@
 
 ## Composable fleet (desktop-class use)
 
-For **Win32 automation**, agents typically combine **OpenManus** (reasoning) + **pywinauto-mcp** (UI actions) + optional OCR / ops MCPs. This repo **onboards** some of those clones but does **not** merge their tool namespaces into one process. See [FLEET.md](FLEET.md) and [SAFETY.md](SAFETY.md).
+For **Win32 automation**, agents typically combine **OpenManus** (reasoning) + **pywinauto-mcp** (UI actions) + optional OCR / ops MCPs. This repo **onboards** some of those clones but does **not** merge their tool namespaces into one process. See [FLEET.md](FLEET.md) and [SAFETY.md](SAFETY.md). Bigger picture (sandraschi repos, months of MCP + React work): [FLEET_CONTEXT.md](FLEET_CONTEXT.md).
 
 ## Roadmap (informal)
 

@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **[docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md)** + README blurb: sandraschi MCP fleet (months, mostly private), MCP + React pattern, OpenManus / robotics / Resonite / World Labs examples
 - README **Planned / TODO:** **My robots** roadmap (Yahboom-class → Dreame/Xiaomi hoovers → Noetix/Bumi-class Androids; virtual + real parallel handling); expanded in [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Staggered docs:** [docs/README.md](docs/README.md) hub + [INSTALL](docs/INSTALL.md), [TECH](docs/TECH.md), [MANUS](docs/MANUS.md), [OPENMANUS](docs/OPENMANUS.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [SAFETY](docs/SAFETY.md); root [README.md](README.md) shortened; [SECURITY.md](SECURITY.md)
 - **Fleet automation:** `scripts/Bootstrap-Fleet.ps1`, `docs/FLEET.md`, `examples/cursor-fleet.template.json` — documents pywinauto-mcp requirement and generates Cursor MCP snippet (generated file gitignored)
