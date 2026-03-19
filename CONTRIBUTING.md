@@ -1,6 +1,6 @@
 # Contributing
 
-**Documentation index:** [docs/README.md](docs/README.md)
+**Documentation index:** [docs/README.md](docs/README.md) · **How we build:** [docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md)
 
 ## Setup
 

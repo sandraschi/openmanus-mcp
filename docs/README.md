@@ -13,6 +13,7 @@ Staggered, linked guides for **openmanus-mcp**. Start with **[INSTALL.md](INSTAL
 | **[FLEET.md](FLEET.md)** | Windows fleet users | pywinauto-mcp, bootstrap script, REST/UI onboarding |
 | **[FLEET_CONTEXT.md](FLEET_CONTEXT.md)** | Context / vibe | sandraschi MCP fleet over months, private phase, MCP + React, OpenManus / robotics / Resonite / World Labs |
 | **[GLAMA.md](GLAMA.md)** | Registry / Glama users | `glama.json` fields and validation |
+| **[HOW_WE_BUILD.md](HOW_WE_BUILD.md)** | Process / vibe | Vibecoding, agentic IDEs, local LLMs, daily FOSS trawl, Opus-style integration pass, zeropaid, new fleet repos |
 
 **Repo root:** [README.md](../README.md) (short overview + badges).
 

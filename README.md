@@ -23,6 +23,7 @@
 | **Fleet** | [docs/FLEET.md](docs/FLEET.md) |
 | **Fleet (big picture)** | [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md) — sandraschi MCP constellation, months of work, MCP + React |
 | **Glama** | [docs/GLAMA.md](docs/GLAMA.md) |
+| **How we build** | [docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md) — vibecoding, agentic IDEs, zeropaid, FOSS trawl, fleet workflow |
 
 **Meta:** [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md) · [.github/TOPICS.md](.github/TOPICS.md) · [glama.json](glama.json) · [justfile](justfile)
 

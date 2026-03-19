@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- **[docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md)** — how building works: vibecoding / agentic architecting (~4 mo window), Cursor & Antigravity, free/local LLMs (Ollama, LM Studio), daily FOSS trawl (e.g. NemoClaw, Maus-class apps), Opus 4.6-style integration concept pass, clone→analyze→new MCP+webapp fleet repo, **zeropaid** priority
 - Roadmap: **OpenClaw- / OpenFang-class** stepwise plan (heartbeat, comms connectors, skills, multi-agentic) + **hierarchical local agent fleet** (arXiv-informed); [ARCHITECTURE.md](docs/ARCHITECTURE.md) section + README [Planned / TODO](README.md#planned--todo)
 - **[docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md)** + README blurb: sandraschi MCP fleet (months, mostly private), MCP + React pattern, OpenManus / robotics / Resonite / World Labs examples
 - README **Planned / TODO:** **My robots** roadmap (Yahboom-class → Dreame/Xiaomi hoovers → Noetix/Bumi-class Androids; virtual + real parallel handling); expanded in [ARCHITECTURE.md](docs/ARCHITECTURE.md)
