@@ -68,7 +68,10 @@ Optional **supervisor** (interval schedules → background runs), a **connector*
 
 ## Planned / TODO
 
-- **My robots** — toy rovers → robot hoovers → humanoids; virtual ∥ real → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal)
+- **My robots (planned)** — **medium-term** direction:
+  - Connect the same agents and **MCP servers** to **hardware you already have** (toy/education rovers, robot vacuums, and down the road more human-like robots)—not just files and APIs.
+  - Keep **you in the loop** for anything that could hurt someone or break something; no “surprise, the arm moved.”
+  - Support **try-it-in-software-first** (simulation / replay) as a peer to **live** runs, so you rehearse before the real world. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
 - **OpenClaw-class (partially shipped)** — supervisor tick + schedules, connector registry, skills index + chat injection → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#openclaw-style-features-shipped--planned)
 - **OpenClaw-class (still planned)** — full comms gateway, durable schedule store, lazy skill loading parity, multi-agent orchestration → same section
 - **Hierarchical local agents** (arXiv-informed) — PRs welcome
