@@ -5,13 +5,14 @@ from __future__ import annotations
 import logging
 import sys
 import time
-from typing import Any
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import structlog
 from fastmcp import FastMCP
 
+from openmanus_mcp import __version__
 from openmanus_mcp.openmanus_detect import describe_openmanus
 from openmanus_mcp.settings import get_settings
 
@@ -97,7 +98,7 @@ async def openmanus_bridge(
             "success": True,
             "message": "openmanus-mcp status",
             "result": {
-                "server_version": "0.1.0",
+                "server_version": __version__,
                 "openmanus_root_set": settings.openmanus_root is not None,
                 "openmanus_path": str(info.root) if info else None,
                 "openmanus_valid": bool(info and info.looks_valid),
@@ -148,7 +149,7 @@ async def openmanus_bridge(
             "message": "run_prompt not implemented in v0.1 — scaffold only",
             "error_type": "not_implemented",
             "recovery_options": [
-                "Run OpenManus directly: python main.py --prompt \"...\" in OPENMANUS_ROOT",
+                'Run OpenManus directly: python main.py --prompt "..." in OPENMANUS_ROOT',
                 "Watch this repo for v0.2 subprocess runner + streaming logs",
             ],
             "diagnostic_info": {"prompt_received": bool(prompt and prompt.strip())},

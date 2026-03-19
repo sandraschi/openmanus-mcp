@@ -2,10 +2,7 @@
 
 **Applied on 2026-03-19** via `gh repo edit` (topics: `cli-wrapper`, `fuckzuck`, `local-llm`, `manus`, `mcp`, `ollama`, `openmanus`, `zeropaid`). Verify: `gh api repos/sandraschi/openmanus-mcp --jq .topics`
 
-If **`gh` is not on PATH** in Cursor, use the full binary:
-
-`& "C:\Program Files\GitHub CLI\gh.exe" ...`  
-See [mcp-central-docs: GITHUB_CLI_CURSOR_PATH.md](https://github.com/sandraschi/mcp-central-docs/blob/main/operations/GITHUB_CLI_CURSOR_PATH.md).
+If **`gh` is not on PATH** in your editor or terminal, install [GitHub CLI](https://cli.github.com/) and fix PATH (Windows: add the install folder Git picked, often under `Program Files`). See [mcp-central-docs: GITHUB_CLI_CURSOR_PATH.md](https://github.com/sandraschi/mcp-central-docs/blob/main/operations/GITHUB_CLI_CURSOR_PATH.md).
 
 ---
 

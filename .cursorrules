@@ -2,7 +2,7 @@
 
 ## Central docs (mandatory)
 
-Before changing standards or patterns, read **`D:\Dev\repos\mcp-central-docs\`** — start at `standards/AGENT_PROTOCOLS.md`, `operations/WEBAPP_PORTS.md`.
+Before changing standards or patterns, read **[mcp-central-docs](https://github.com/sandraschi/mcp-central-docs)** — start at `standards/AGENT_PROTOCOLS.md`, `operations/WEBAPP_PORTS.md`.
 
 ## Stack
 
@@ -14,3 +14,7 @@ Before changing standards or patterns, read **`D:\Dev\repos\mcp-central-docs\`**
 ## Product
 
 Wrap **FoundationAgents/OpenManus** (FOSS), not Manus.im. Prefer **local LLM** configs in upstream `config.toml`.
+
+## Docs hygiene
+
+Do **not** commit machine-specific paths (`D:\...`, `C:\Users\...`) in README or examples — use placeholders and `cwd` as “absolute path to your clone”.

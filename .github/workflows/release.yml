@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Sync (dev)
+        run: uv sync --extra dev
+
+      - name: Ruff check
+        run: uv run ruff check src tests
+
+      - name: Ruff format
+        run: uv run ruff format --check src tests
+
+      - name: Pytest
+        run: uv run pytest
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: GitHub Release + assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

@@ -1,6 +1,18 @@
 # Changelog
 
+## [0.1.0a1] - 2026-03-19
+
+### Added
+- **Alpha** release channel; PyPI classifiers and README status badges
+- CI (Ruff + pytest + `web_sota` build), pre-commit (Ruff check + format), release workflow on `v*` tags
+- `__version__` from installed package metadata (`importlib.metadata`)
+
+### Changed
+- README / `.env.example` / `.cursorrules`: removed machine-specific paths; portable clone + `cwd` guidance
+
 ## [0.1.0] - 2026-03-19
+
+Superseded by **0.1.0a1** (alpha); kept for history.
 
 ### Added
 - FastMCP 3.1 server: `openmanus_bridge` (status, validate, run_prompt stub)

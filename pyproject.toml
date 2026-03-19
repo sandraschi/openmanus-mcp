@@ -1,12 +1,20 @@
 [project]
 name = "openmanus-mcp"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "FastMCP 3.1 server + SOTA webapp wrapping FoundationAgents OpenManus (FOSS CLI, local LLM)"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
 authors = [{ name = "Sandra Schi" }]
 keywords = ["mcp", "fastmcp", "openmanus", "agent", "local-llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "fastmcp>=3.1.0,<4",
     "fastapi>=0.115.0",
@@ -23,7 +31,13 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "ruff>=0.8.0",
     "mypy>=1.0.0",
+    "pre-commit>=4.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/sandraschi/openmanus-mcp"
+Repository = "https://github.com/sandraschi/openmanus-mcp"
+Issues = "https://github.com/sandraschi/openmanus-mcp/issues"
 
 [project.scripts]
 openmanus-mcp = "openmanus_mcp.__main__:main"

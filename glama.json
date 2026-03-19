@@ -1,6 +1,7 @@
 {
   "$schema": "https://glama.ai/schemas/mcp.json",
   "name": "openmanus-mcp",
+  "version": "0.1.0a1",
   "description": "FastMCP 3.1 wrapper + webapp for FoundationAgents OpenManus (FOSS CLI, local LLM)",
   "repository": {
     "url": "https://github.com/sandraschi/openmanus-mcp",

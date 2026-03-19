@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Sync (dev)
+        run: uv sync --extra dev
+
+      - name: Ruff check
+        run: uv run ruff check src tests
+
+      - name: Ruff format
+        run: uv run ruff format --check src tests
+
+      - name: Pytest
+        run: uv run pytest
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web_sota
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web_sota/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Build
+        run: npm run build
