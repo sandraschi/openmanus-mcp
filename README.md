@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/banner.svg" alt="openmanus-mcp — FastMCP + OpenManus FOSS + fleet UI" width="92%" />
+<img src="docs/assets/banner.svg" alt="openmanus-mcp — FastMCP + OpenManus FOSS + MCP server fleet UI" width="92%" />
 
 <br/>
 
@@ -11,8 +11,8 @@
 [![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square)](LICENSE)
 [![Glama](https://img.shields.io/badge/Glama-MCP-0ea5e9?style=flat-square)](https://glama.ai/mcp/servers?query=openmanus)
 
-**MCP server + local dashboard for [OpenManus](https://github.com/FoundationAgents/OpenManus) (FOSS).**  
-Local LLM via upstream config (**Ollama**, **LM Studio**, …). **Not** Manus.im.
+**Bridge and browser UI for [OpenManus](https://github.com/FoundationAgents/OpenManus)** — the **FOSS** agent, not Manus.im.  
+Use your own **Ollama**, **LM Studio**, or other local endpoints; this repo stays out of your wallet by default.
 
 [Install](docs/INSTALL.md) · [Tech](docs/TECH.md) · [Glama](docs/GLAMA.md) · [How we build](docs/HOW_WE_BUILD.md)
 
@@ -22,15 +22,27 @@ Local LLM via upstream config (**Ollama**, **LM Studio**, …). **Not** Manus.im
 
 > **Beta** — behavior may still shift; pin a **tag** for anything serious → [RELEASING.md](RELEASING.md).
 
-## Why this exists
+## What you get
 
-| | |
-|--:|--|
-| **Agents** | `openmanus_bridge` over **stdio** (Cursor, Claude, Glama, …) |
-| **Humans** | **Vite** dashboard **:10769** + **FastAPI** **:10768** |
-| **Fleet** | Onboard curated MCP repos from the UI → [docs/FLEET.md](docs/FLEET.md) |
-| **OpenClaw-class** | **Supervisor** (interval schedules → async runs), **connector** catalog, **skills** (compact index + optional full `SKILL.md` in chat) → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| **Money** | **Zeropaid**-biased; local inference first → [docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md) |
+### For Agents
+
+**MCP** over stdio: tool **`openmanus_bridge`** so **Cursor**, **Claude Desktop**, **Glama**, and friends can check the OpenManus install, run prompts, and poll async jobs without leaving the editor.
+
+### For Humans
+
+**Webapp** to **start and control** tasks: run OpenManus (sync or queued), pick presets and activities, chat with a **local** model, onboard other **MCP servers** into your **fleet**, and skim API help. One **`start.ps1`** (or your own process) brings up UI + backend together — see [INSTALL.md](docs/INSTALL.md).
+
+### MCP server fleet
+
+A **fleet of MCP server repos** (curated siblings): clone and track them from the dashboard — each stays its own project, **not** one giant merged tool namespace. Details: [docs/FLEET.md](docs/FLEET.md).
+
+### Automation (OpenClaw-style)
+
+Optional **supervisor** (interval schedules → background runs), a **connector** catalog (email / robot / media hints), and **skills** (compact skill index + optional full playbooks in chat). Overview: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+### Cost bias
+
+**Zeropaid-first**: local inference and FOSS glue before paid APIs — [docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md).
 
 ## Documentation
 
@@ -43,25 +55,12 @@ Local LLM via upstream config (**Ollama**, **LM Studio**, …). **Not** Manus.im
 | **Skills (AgentSkills-style)** | [docs/SKILLS_OPENCLAW.md](docs/SKILLS_OPENCLAW.md) |
 | **Manus vs OpenManus** | [docs/MANUS.md](docs/MANUS.md) |
 | **Safety** | [docs/SAFETY.md](docs/SAFETY.md) |
-| **Fleet (big picture)** | [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md) |
+| **MCP server fleet (big picture)** | [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md) |
 | **Visual assets** | [docs/assets/README.md](docs/assets/README.md) — *Nano Banana / Veo-style hero + demo when you add files* |
 
 **Meta:** [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md) · [.github/TOPICS.md](.github/TOPICS.md) (topics + **snappy GitHub description**) · [glama.json](glama.json) · [justfile](justfile)
 
-## Honest visibility (no growth hacks)
-
-**Lighthouse:** stories like **OpenClaw / OpenFang → huge stars** are **not** reproducible by README edits alone. **1k stars** *is* doable with **shipping + one good loop** of attention.
-
-What actually moves the needle (all **legit**):
-
-1. **30s demo** — screen recording or GIF: MCP tool call + dashboard + Fleet row. Drop under [docs/assets/](docs/assets/README.md) (*Nano Banana stills / **Veo** clip optional but nice.*)
-2. **GitHub Topics** — use the **full 20** from [.github/TOPICS.md](.github/TOPICS.md) so searchers find you.
-3. **Snappy “About” description** — paste the one-liner from TOPICS.md (search + social cards).
-4. **One** high-signal post (e.g. Show HN, r/LocalLLaMA, X) when the demo is ready — **spamming** hurts.
-5. **Glama** + **`glama.json`** — registry discovery for MCP users.
-6. **Respond** to first issues fast — that’s how early adopters star.
-
-We’re not chasing **100k** here; we’re building a **credible on-ramp** to OpenManus + MCP + UI.
+**Visibility / stars (straight talk):** [docs/HOW_WE_BUILD.md#10-honest-visibility-no-growth-hacks](docs/HOW_WE_BUILD.md#10-honest-visibility-no-growth-hacks)
 
 ## Authenticity (not “agentslop”)
 
@@ -74,9 +73,9 @@ We’re not chasing **100k** here; we’re building a **credible on-ramp** to Op
 - **OpenClaw-class (still planned)** — full comms gateway, durable schedule store, lazy skill loading parity, multi-agent orchestration → same section
 - **Hierarchical local agents** (arXiv-informed) — PRs welcome
 - **ORB** integration — planned; scope TBD → [docs/REPO_HYGIENE.md](docs/REPO_HYGIENE.md#planned-orb-integration) + Issues
-- OpenManus **runner** + **Cursor snippets** + fleet **health** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal)
+- OpenManus **runner** + **Cursor snippets** + **MCP server fleet health** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal)
 
-## The MCP fleet pattern
+## The MCP server fleet pattern
 
 This repo is one of many **MCP + React** projects under **[sandraschi](https://github.com/sandraschi)** — [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md).
 

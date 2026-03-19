@@ -75,4 +75,19 @@ Only after that: **clone / fork** and **deep local analysis** (grep, run tests, 
 
 Open an issue with: **link**, **license**, **one paragraph “why fleet”**, and whether you want **MCP**, **webapp**, or **both**. Or send a PR to **`fleet_catalog.json`** with a curated entry and install recipe.
 
+## 10. Honest visibility (no growth hacks)
+
+**Lighthouse:** stories like **OpenClaw / OpenFang → huge stars** are **not** reproducible by README edits alone. **1k stars** *is* doable with **shipping + one good loop** of attention.
+
+What actually moves the needle (all **legit**):
+
+1. **30s demo** — screen recording or GIF: MCP tool call + dashboard + Fleet row. Drop under [docs/assets/](assets/README.md) (*Nano Banana stills / **Veo** clip optional but nice.*)
+2. **GitHub Topics** — use the **full 20** from [.github/TOPICS.md](../.github/TOPICS.md) so searchers find you.
+3. **Snappy “About” description** — paste the one-liner from TOPICS.md (search + social cards).
+4. **One** high-signal post (e.g. Show HN, r/LocalLLaMA, X) when the demo is ready — **spamming** hurts.
+5. **Glama** + **`glama.json`** — registry discovery for MCP users.
+6. **Respond** to first issues fast — that’s how early adopters star.
+
+We’re not chasing **100k** here; we’re building a **credible on-ramp** to OpenManus + MCP + UI.
+
 ← [README.md](../README.md) · [FLEET_CONTEXT.md](FLEET_CONTEXT.md) · [CONTRIBUTING.md](../CONTRIBUTING.md)
