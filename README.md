@@ -66,6 +66,10 @@ web_sota/            # Vite React dashboard
 tests/
 ```
 
+## Fleet: “My Computer”–class desktop control
+
+Vendor desktop agents are one bundle; **our** approach is **composable MCP**: run **OpenManus** with **`config/mcp.json`** attaching **[pywinauto-mcp](https://github.com/sandraschi/pywinauto-mcp)** (Win32 click/type/scrape) plus OCR / Windows-ops servers as needed. **High risk** — use VMs, allowlists, and human gates. Architecture write-up: [mcp-central-docs — FLEET_COMPUTER_USE_MCP.md](https://github.com/sandraschi/mcp-central-docs/blob/main/patterns/FLEET_COMPUTER_USE_MCP.md).
+
 ## License
 
 MIT
