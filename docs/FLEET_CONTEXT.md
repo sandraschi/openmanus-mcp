@@ -38,4 +38,4 @@ This repo’s **[FLEET.md](FLEET.md)** onboarding (clone curated members under `
 
 Self-deprecating truth: **ignored ≠ worthless**. The fleet was built for **real use** (Vienna keyboard, Benny-approved perimeter), not for leaderboard farming. If a repo ships **MCP + React**, it’s probably meant to be **used**, not just starred.
 
-← [README.md](../README.md) · [FLEET.md](FLEET.md) · [ARCHITECTURE.md](ARCHITECTURE.md)
+← [README.md](../README.md) · [FLEET.md](FLEET.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [HOW_WE_BUILD.md](HOW_WE_BUILD.md)

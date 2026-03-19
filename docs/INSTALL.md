@@ -64,6 +64,11 @@ Ports are fixed to **10768** / **10769** per [WEBAPP_PORTS](https://github.com/s
 
 Scripted sibling clone + Cursor snippet: **`scripts/Bootstrap-Fleet.ps1`** — [FLEET.md](FLEET.md).
 
+## Optional: supervisor + skills
+
+- **Supervisor** (scheduled OpenManus runs): set **`OPENMANUS_SUPERVISOR_ENABLED=true`** and use **`/api/v1/supervisor/*`** — [SUPERVISOR.md](SUPERVISOR.md).
+- **Skills** (compact catalog in chat + bundled `mcp-builder`): [SKILLS_OPENCLAW.md](SKILLS_OPENCLAW.md); extra scan roots via **`OPENMANUS_SKILLS_EXTRA_DIRS`**.
+
 ## Verify
 
 - MCP: client shows server and tool **`openmanus_bridge`**

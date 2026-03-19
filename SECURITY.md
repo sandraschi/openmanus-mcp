@@ -5,3 +5,5 @@ Report vulnerabilities via **[GitHub private vulnerability reporting](https://gi
 **Scope:** this repository and its default configuration (localhost API/UI, stdio MCP).
 
 **Operational safety** (fleet, desktop automation, pywinauto): see **[docs/SAFETY.md](docs/SAFETY.md)**.
+
+**Repo meta** (spam, coordinated bad-faith reports, “AI repo” disputes): prefer **one factual issue or Discussion** — see **[docs/REPO_HYGIENE.md](docs/REPO_HYGIENE.md)**.

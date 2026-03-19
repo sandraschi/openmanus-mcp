@@ -1,48 +1,84 @@
-# openmanus-mcp
+<div align="center">
 
-![Alpha](https://img.shields.io/badge/status-alpha-orange)
-[![CI](https://github.com/sandraschi/openmanus-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/sandraschi/openmanus-mcp/actions/workflows/ci.yml)
+<img src="docs/assets/banner.svg" alt="openmanus-mcp — FastMCP + OpenManus FOSS + fleet UI" width="92%" />
 
-**FastMCP 3.1** MCP server + **local dashboard** for **[OpenManus](https://github.com/FoundationAgents/OpenManus)** (FOSS agent, **local LLM**-friendly). **Not** Manus.im.
+<br/>
 
-> **Alpha** — APIs and tools may change. Pin a tag for anything serious; see [RELEASING.md](RELEASING.md).
+[![Beta](https://img.shields.io/badge/status-beta-yellowgreen?style=flat-square)](./RELEASING.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/sandraschi/openmanus-mcp/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/sandraschi/openmanus-mcp/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue?style=flat-square)](docs/INSTALL.md)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.1%2B-8b5cf6?style=flat-square)](https://github.com/jlowin/fastmcp)
+[![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square)](LICENSE)
+[![Glama](https://img.shields.io/badge/Glama-MCP-0ea5e9?style=flat-square)](https://glama.ai/mcp/servers?query=openmanus)
 
-**Quick install:** [docs/INSTALL.md](docs/INSTALL.md)
+**MCP server + local dashboard for [OpenManus](https://github.com/FoundationAgents/OpenManus) (FOSS).**  
+Local LLM via upstream config (**Ollama**, **LM Studio**, …). **Not** Manus.im.
 
-## Documentation (staggered / linked)
+[Install](docs/INSTALL.md) · [Tech](docs/TECH.md) · [Glama](docs/GLAMA.md) · [How we build](docs/HOW_WE_BUILD.md)
+
+</div>
+
+---
+
+> **Beta** — behavior may still shift; pin a **tag** for anything serious → [RELEASING.md](RELEASING.md).
+
+## Why this exists
+
+| | |
+|--:|--|
+| **Agents** | `openmanus_bridge` over **stdio** (Cursor, Claude, Glama, …) |
+| **Humans** | **Vite** dashboard **:10769** + **FastAPI** **:10768** |
+| **Fleet** | Onboard curated MCP repos from the UI → [docs/FLEET.md](docs/FLEET.md) |
+| **OpenClaw-class** | **Supervisor** (interval schedules → async runs), **connector** catalog, **skills** (compact index + optional full `SKILL.md` in chat) → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Money** | **Zeropaid**-biased; local inference first → [docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md) |
+
+## Documentation
 
 | | |
 |--|--|
-| **Index** | [docs/README.md](docs/README.md) — full map |
+| **Index** | [docs/README.md](docs/README.md) |
 | **Install** | [docs/INSTALL.md](docs/INSTALL.md) |
-| **Technical** | [docs/TECH.md](docs/TECH.md) |
-| **Manus naming** | [docs/MANUS.md](docs/MANUS.md) — vendor vs FOSS |
-| **OpenManus upstream** | [docs/OPENMANUS.md](docs/OPENMANUS.md) |
-| **Architecture** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Architecture & roadmap** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Supervisor & connectors** | [docs/SUPERVISOR.md](docs/SUPERVISOR.md) |
+| **Skills (AgentSkills-style)** | [docs/SKILLS_OPENCLAW.md](docs/SKILLS_OPENCLAW.md) |
+| **Manus vs OpenManus** | [docs/MANUS.md](docs/MANUS.md) |
 | **Safety** | [docs/SAFETY.md](docs/SAFETY.md) |
-| **Fleet** | [docs/FLEET.md](docs/FLEET.md) |
-| **Fleet (big picture)** | [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md) — sandraschi MCP constellation, months of work, MCP + React |
-| **Glama** | [docs/GLAMA.md](docs/GLAMA.md) |
-| **How we build** | [docs/HOW_WE_BUILD.md](docs/HOW_WE_BUILD.md) — vibecoding, agentic IDEs, zeropaid, FOSS trawl, fleet workflow |
+| **Fleet (big picture)** | [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md) |
+| **Visual assets** | [docs/assets/README.md](docs/assets/README.md) — *Nano Banana / Veo-style hero + demo when you add files* |
 
-**Meta:** [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md) · [.github/TOPICS.md](.github/TOPICS.md) · [glama.json](glama.json) · [justfile](justfile)
+**Meta:** [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md) · [.github/TOPICS.md](.github/TOPICS.md) (topics + **snappy GitHub description**) · [glama.json](glama.json) · [justfile](justfile)
 
-## One-line facts
+## Honest visibility (no growth hacks)
 
-- **Ports:** API **10768**, UI **10769** ([WEBAPP_PORTS](https://github.com/sandraschi/mcp-central-docs/blob/main/operations/WEBAPP_PORTS.md))
-- **MCP tool:** `openmanus_bridge` (`status`, `validate`, `run_prompt` stub)
-- **Standards:** [AGENT_PROTOCOLS](https://github.com/sandraschi/mcp-central-docs/blob/main/standards/AGENT_PROTOCOLS.md)
+**Lighthouse:** stories like **OpenClaw / OpenFang → huge stars** are **not** reproducible by README edits alone. **1k stars** *is* doable with **shipping + one good loop** of attention.
+
+What actually moves the needle (all **legit**):
+
+1. **30s demo** — screen recording or GIF: MCP tool call + dashboard + Fleet row. Drop under [docs/assets/](docs/assets/README.md) (*Nano Banana stills / **Veo** clip optional but nice.*)
+2. **GitHub Topics** — use the **full 20** from [.github/TOPICS.md](.github/TOPICS.md) so searchers find you.
+3. **Snappy “About” description** — paste the one-liner from TOPICS.md (search + social cards).
+4. **One** high-signal post (e.g. Show HN, r/LocalLLaMA, X) when the demo is ready — **spamming** hurts.
+5. **Glama** + **`glama.json`** — registry discovery for MCP users.
+6. **Respond** to first issues fast — that’s how early adopters star.
+
+We’re not chasing **100k** here; we’re building a **credible on-ramp** to OpenManus + MCP + UI.
+
+## Authenticity (not “agentslop”)
+
+**MCP ≠ low-effort dump.** Maintainer-owned, **CI-backed**, stubs labeled honestly — see **[docs/REPO_HYGIENE.md](docs/REPO_HYGIENE.md)** (quality bar, spam stance, ecosystem **lament**, **ORB** on roadmap). PRs use **[.github/pull_request_template.md](.github/pull_request_template.md)**.
 
 ## Planned / TODO
 
-- **My robots** — unified “my fleet” affordances from **toy/edu rovers** (e.g. [Yahboom](https://www.yahboom.net/)-class robocars) through **home robots** (e.g. **Dreame** / **Xiaomi** robot hoovers / vacuums) to **humanoids** (e.g. **Noetix** / **Bumi**-class Android-based bots), with **parallel virtual bots** (sim / digital twins) and **real hardware** under the same task and safety model. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
-- **OpenClaw- / OpenFang-class features (stepwise)** — **heartbeat** / liveness, **comms connectors** (routing-style integrations), **skill** surface (MCP skills + [OpenFang](https://github.com/RightNow-AI/openfang)-style `HAND.toml` / `SKILL.md` patterns where we adopt them), **multi-agentic** flows (delegation, parallel workers). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#openclaw-openfang-and-hierarchical-agents-planned).
-- **Hierarchical local agent fleet** — **orchestrator + specialized workers** on your machine, informed by **recent arXiv-style** multi-agent / routing / tree-of-agents ideas (we’ll link concrete papers in the arch doc as we implement). **Suggestions and PRs welcome.**
-- OpenManus **subprocess runner** + streaming logs, **Cursor snippet** generation from `fleet/`, stronger fleet **health** aggregation — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
+- **My robots** — toy rovers → robot hoovers → humanoids; virtual ∥ real → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal)
+- **OpenClaw-class (partially shipped)** — supervisor tick + schedules, connector registry, skills index + chat injection → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#openclaw-style-features-shipped--planned)
+- **OpenClaw-class (still planned)** — full comms gateway, durable schedule store, lazy skill loading parity, multi-agent orchestration → same section
+- **Hierarchical local agents** (arXiv-informed) — PRs welcome
+- **ORB** integration — planned; scope TBD → [docs/REPO_HYGIENE.md](docs/REPO_HYGIENE.md#planned-orb-integration) + Issues
+- OpenManus **runner** + **Cursor snippets** + fleet **health** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal)
 
-## The MCP server fleet (why this repo fits a pattern)
+## The MCP fleet pattern
 
-**openmanus-mcp** sits in a **wider fleet** of MCP servers on **[sandraschi @ GitHub](https://github.com/sandraschi)** — built over the **last few months**, much of it **very private** and **under the radar** (“ignored by all and sundry” is a feature, not a bug). The recurring shape is **MCP server + React webapp** (plus API): that combo makes niche but **innovative** stacks (**OpenManus**, **robotics**, **Resonite**, **World Labs**-class tooling, etc.) **approachable** for both agents and humans. Longer read: **[docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md)**.
+This repo is one of many **MCP + React** projects under **[sandraschi](https://github.com/sandraschi)** — [docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md).
 
 ## Who perpetrated this
 
@@ -53,7 +89,7 @@
 | **IDE / agent shell** | [Cursor](https://cursor.com/) |
 | **Security** | **Benny** the Schäferhund |
 | **Where** | Vienna — **Alsergrund** |
-| **Build time (so far)** | ~**2 hours**, lunch included |
+| **Build time (so far)** | Built in **15 mins** (joke!) |
 
 ## License
 

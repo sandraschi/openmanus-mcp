@@ -1,4 +1,8 @@
 # SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
+# Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev — WEBAPP_STANDARDS lifecycle)
+param(
+    [switch]$Build
+)
 $BackendPort = 10768
 $FrontendPort = 10769
 $ApiHealth = "http://127.0.0.1:$BackendPort/api/v1/health"
@@ -58,5 +62,9 @@ Write-Host "Starting Vite on $FrontendPort ..."
 Set-Location $WebSotaRoot
 if (-not (Test-Path "node_modules")) {
     npm install
+}
+if ($Build) {
+    Write-Host "npm run build (Build switch) ..."
+    npm run build
 }
 npm run dev

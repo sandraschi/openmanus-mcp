@@ -1,14 +1,14 @@
 {
   "$schema": "https://glama.ai/schemas/mcp.json",
   "name": "openmanus-mcp",
-  "version": "0.1.0a1",
-  "description": "FastMCP 3.1 MCP server + FastAPI + Vite webapp for FoundationAgents OpenManus (FOSS). Local LLM via upstream config. Fleet onboarding UI clones curated MCP repos.",
+  "version": "0.1.0b1",
+  "description": "FastMCP 3.1 MCP + React dashboard for OpenManus (FOSS). Local LLM (Ollama, LM Studio). Fleet onboarding UI. Not Manus.im.",
   "author": "Sandra Schi",
   "license": "MIT",
   "language": "python",
   "framework": "fastmcp",
   "type": "mcp_server",
-  "status": "alpha",
+  "status": "beta",
   "transport": ["stdio"],
   "tools": 1,
   "keywords": [
@@ -22,7 +22,11 @@
     "agent",
     "fleet",
     "windows",
-    "openmanus-bridge"
+    "openmanus-bridge",
+    "lm-studio",
+    "model-context-protocol",
+    "vite",
+    "react"
   ],
   "categories": [
     "Developer Tools",
@@ -75,7 +79,7 @@
         "message": 120000
       },
       "metadata": {
-        "version": "0.1.0a1",
+        "version": "0.1.0b1",
         "author": "Sandra Schi",
         "homepage": "https://github.com/sandraschi/openmanus-mcp",
         "license": "MIT",

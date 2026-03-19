@@ -12,9 +12,9 @@
                      │                    │                    │
                      ▼                    ▼                    ▼
             ┌──────────────┐    ┌─────────────────┐   ┌──────────────┐
-            │  .env /      │    │  FastAPI        │   │  Future:     │
+            │  .env /      │    │  FastAPI        │   │  Runner      │
             │  OPENMANUS_  │    │  :10768         │   │  subprocess  │
-            │  ROOT probe  │    │  /api/v1/*      │   │  OpenManus   │
+            │  ROOT probe  │    │  /api/v1/*      │   │  (OpenManus) │
             └──────────────┘    └────────┬────────┘   └──────────────┘
                                          │ HTTP (proxy /api)
                                          ▼
@@ -24,6 +24,17 @@
                                 │  Dashboard+Fleet│
                                 └─────────────────┘
 ```
+
+### FastAPI subsystems (beyond fleet + run)
+
+| Module / area | Role |
+|---------------|------|
+| **`supervisor/`** | Optional background tick (`OPENMANUS_SUPERVISOR_ENABLED`): interval **schedules** → queue **async** OpenManus runs via shared limiter + job store |
+| **`connectors/`** | Static **catalog** (`email`, `yahboom`, `calibre`) — metadata + proactive prompt hints; **no** outbound MCP from this process |
+| **`skills_catalog.py` + `skills/`** | **AgentSkills-style** `SKILL.md` discovery; **compact XML-like index** injected into chat system prompt; optional **full file** inline via `skill_ids` |
+| **Adaptive concurrency** | `concurrency.py` — host RAM/GPU-aware cap shared by sync/async runs and supervisor-fired jobs |
+
+Details: [SUPERVISOR.md](SUPERVISOR.md) · [SKILLS_OPENCLAW.md](SKILLS_OPENCLAW.md)
 
 ## Request flows
 
@@ -49,20 +60,36 @@ For **Win32 automation**, agents typically combine **OpenManus** (reasoning) + *
   - **Parallel tracks:** **virtual bots** (simulation, replay, CI sandboxes, “digital twin” state) and **real bots** (live hardware, rate limits, estop) with explicit mode switching and shared task schemas where safe.
   - **Same agent surface:** OpenManus + MCP fleet can target either track; physical actions require **hard gates** (human confirm, geofence, power/state checks) — see [SAFETY.md](SAFETY.md).
   - **Integration shape:** likely via dedicated MCP servers (e.g. existing **yahboom-mcp** patterns in your ecosystem) and dashboard **fleet** rows for robot classes, not a single monolithic driver in this repo.
-- **Subprocess runner** for upstream OpenManus with streaming logs into the webapp.
+- **Streaming logs** from the runner into the webapp logger (partial today — poll / copy stdout from REST result).
 - **Cursor snippet generation** from onboarded `fleet/` paths.
+- **ORB-class integration** (planned): outbound routing / broker or registry layer — design TBD; see [REPO_HYGIENE.md](REPO_HYGIENE.md#planned-orb-integration) and repo Issues when the thread opens.
 - Stronger **health** aggregation across fleet members (optional).
 
-## OpenClaw OpenFang and hierarchical agents (planned)
+## OpenClaw-style features (shipped & planned)
 
-**Stepwise** adoption — no big-bang rewrite. Names align with ecosystem usage elsewhere (e.g. **OpenClaw** as *comms / message-routing* idioms, **OpenFang** as *hand + skill bundle* idioms).
+**Stepwise** adoption — no big-bang rewrite. Names align with ecosystem usage (e.g. **OpenClaw** on [docs.openclaw.ai](https://docs.openclaw.ai/)).
+
+### Shipped in this repo (phase-1)
+
+| Area | What works today |
+|------|------------------|
+| **Liveness** | `GET /api/v1/health`, `GET /api/v1/status` (includes **supervisor** snapshot fields when configured) |
+| **Supervisor** | Background **tick** + **interval schedules** → async OpenManus jobs; **in-memory** schedules; opt-in via env |
+| **Connectors** | **Registry** only: `GET /api/v1/connectors` — documents email / yahboom / calibre MCP alignment + proactive prompt text |
+| **Skills** | Bundled + extra-dir **`SKILL.md`** scan; **compact index** in chat system prompt; **`skill_ids`** for full-body injection; `GET /api/v1/skills` |
+| **UI** | **SOTA Chat**: skills toggles; **Run**: activity categories **comms / robots / media** |
+
+### Still planned (heavier OpenClaw / OpenFang parity)
 
 | Phase | Focus | Notes |
 |-------|--------|--------|
-| **1 — Heartbeat** | **Liveness** for this API, onboarded `fleet/` members, and (later) attached MCP processes | Timestamps, `/api/v1/health` depth, optional push to UI badges |
-| **2 — Comms connectors** | **OpenClaw-class** patterns: **routing** notifications and events over **connectors** (chat, email, webhooks — whatever we standardize) without turning this repo into a full gateway | Start read-only or outbound-only; [SAFETY.md](SAFETY.md) for abuse model |
-| **3 — Skill integration** | **FastMCP 3.x** skills/resources where they fit; optional import of **[OpenFang](https://github.com/RightNow-AI/openfang)**-style **`HAND.toml` / `SKILL.md`** bundles as *documented* adapters (same separation idea as RoboFang’s OpenFang adapter — mapping layer, not silent merge) | Version manifests; no skill name collisions with `openmanus_bridge` |
-| **4 — Multi-agentic** | **Multiple agents** sharing context: planner + executor + critic, or **parallel** task branches with merge policy | Prefer **local** orchestration; optional bridge to a hub (e.g. RoboFang-style) later |
+| **Heartbeat depth** | Fleet member + attached MCP **liveness** beyond this API process | Push to UI badges, optional probes |
+| **Comms gateway** | **Routing** notifications/events over real **channels** (not only catalog metadata) | Read-only or outbound-first; [SAFETY.md](SAFETY.md) |
+| **Durable schedules** | Persist schedules (disk/DB), cron expressions, backoff | Today: process-local only |
+| **Skill loading** | Token-optimized **lazy** load matching upstream OpenClaw evolution | Today: full inline capped by `OPENMANUS_MAX_SKILL_INJECT_CHARS` |
+| **FastMCP resources** | Expose skills via MCP **resources** for stdio clients | Optional; avoid name collisions with `openmanus_bridge` |
+| **OpenFang-style bundles** | Optional **`HAND.toml` / `SKILL.md`** adapters ([OpenFang](https://github.com/RightNow-AI/openfang)) | Mapping layer, not silent merge |
+| **Multi-agentic** | Planner + executor + critic or parallel branches | Prefer **local** orchestration; optional hub later |
 
 ### Hierarchical local agent fleet (arXiv-informed)
 

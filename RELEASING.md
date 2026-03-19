@@ -1,11 +1,11 @@
 # Releasing
 
-**Alpha:** versions use PEP 440 pre-releases, e.g. `0.1.0a1`, `0.1.0a2`. Git tags use a `v` prefix: `v0.1.0a1`.
+**Beta:** versions use PEP 440 pre-releases, e.g. `0.1.0b1`, `0.1.0b2`. Git tags use a `v` prefix: `v0.1.0b1`. (Earlier **alpha** tags remain valid history.)
 
 ## Steps
 
 1. Bump **`pyproject.toml`** `[project] version` (single source for packages built with Hatch).
-2. Align **`glama.json`** top-level `"version"`, **`mcpServers.openmanus-mcp.metadata.version`**, and **`web_sota/package.json`** `"version"` (npm semver: `0.1.0-alpha.N`).
+2. Align **`glama.json`** top-level `"version"`, **`mcpServers.openmanus-mcp.metadata.version`**, and **`web_sota/package.json`** `"version"` (npm semver: `0.1.0-beta.N` or `0.1.0bN` style as you prefer).
 3. Update **`CHANGELOG.md`**.
 4. Commit and push to `main`.
 5. Tag and push:
@@ -21,5 +21,5 @@ Runtime **`openmanus_mcp.__version__`** comes from installed metadata (`importli
 
 ## Notes
 
-- Tag name should match the release you intend (e.g. `v0.1.0a1` for alpha 1).
+- Tag name should match the release you intend (e.g. `v0.1.0b1` for beta 1).
 - PyPI publish is **not** automated here; add a trusted publisher or `uv publish` job when you are ready for public index uploads.

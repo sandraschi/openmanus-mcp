@@ -16,3 +16,14 @@ async def test_bridge_status() -> None:
     r = await openmanus_bridge("status")
     assert r["success"] is True
     assert r["result"]["server_version"] == __version__
+    assert "runner_timeout_s" in r["result"]
+    assert "async_jobs_pending" in r["result"]
+    assert "async_jobs_stored" in r["result"]
+    assert "job_store_max_completed" in r["result"]
+
+
+@pytest.mark.asyncio
+async def test_bridge_unknown_op() -> None:
+    r = await openmanus_bridge("bogus_operation")
+    assert r["success"] is False
+    assert r["error_type"] == "invalid_argument"

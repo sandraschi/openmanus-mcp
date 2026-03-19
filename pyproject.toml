@@ -1,14 +1,23 @@
 [project]
 name = "openmanus-mcp"
-version = "0.1.0a1"
-description = "FastMCP 3.1 server + SOTA webapp wrapping FoundationAgents OpenManus (FOSS CLI, local LLM)"
+version = "0.1.0b1"
+description = "FastMCP 3.1 MCP + React dashboard for OpenManus (FOSS). Local LLM. Fleet onboarding."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
 authors = [{ name = "Sandra Schi" }]
-keywords = ["mcp", "fastmcp", "openmanus", "agent", "local-llm"]
+keywords = [
+    "mcp",
+    "fastmcp",
+    "openmanus",
+    "agent",
+    "local-llm",
+    "ollama",
+    "lm-studio",
+    "model-context-protocol",
+]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",

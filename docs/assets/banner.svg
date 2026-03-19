@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="200" viewBox="0 0 920 200" role="img" aria-label="openmanus-mcp banner">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0b1220"/>
+      <stop offset="55%" style="stop-color:#132337"/>
+      <stop offset="100%" style="stop-color:#1a1f35"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <rect width="920" height="200" rx="16" fill="url(#bg)"/>
+  <rect x="48" y="152" width="200" height="5" rx="2" fill="url(#accent)"/>
+  <text x="460" y="92" text-anchor="middle" fill="#f1f5f9" font-family="ui-sans-serif,system-ui,sans-serif" font-size="40" font-weight="700">openmanus-mcp</text>
+  <text x="460" y="132" text-anchor="middle" fill="#94a3b8" font-family="ui-sans-serif,system-ui,sans-serif" font-size="17">FastMCP 3.1 &#183; OpenManus (FOSS) &#183; local LLM &#183; React fleet UI</text>
+  <text x="460" y="168" text-anchor="middle" fill="#64748b" font-family="ui-monospace,monospace" font-size="13">stdio MCP &#183; :10768 API &#183; :10769 dashboard</text>
+</svg>

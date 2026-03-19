@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import sys
 import time
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
@@ -13,7 +15,11 @@ import structlog
 from fastmcp import FastMCP
 
 from openmanus_mcp import __version__
+from openmanus_mcp.job_store import mcp_job_store
+from openmanus_mcp.bridge_schema import BRIDGE_OPERATION_NAMES
 from openmanus_mcp.openmanus_detect import describe_openmanus
+from openmanus_mcp.runner import EntryPoint, RunResult
+from openmanus_mcp.runner import run_prompt as _run_prompt
 from openmanus_mcp.settings import get_settings
 
 structlog.configure(
@@ -40,6 +46,10 @@ if not root.handlers:
     root.addHandler(_stderr)
 
 log = structlog.get_logger(__name__)
+
+# In-memory job store for run_prompt_async results (keyed by job_id).
+# Fine for single-process MCP server; not shared across restarts.
+_jobs: dict[str, RunResult | str] = {}  # value: RunResult or "pending"
 
 
 @asynccontextmanager
@@ -70,28 +80,41 @@ mcp = FastMCP("openmanus-mcp", lifespan=server_lifespan)
 async def openmanus_bridge(
     operation: str,
     prompt: str | None = None,
+    entry_point: str = "main.py",
+    timeout_s: float | None = None,
+    job_id: str | None = None,
 ) -> dict[str, Any]:
     """OPENMANUS_BRIDGE — Control plane for the OpenManus FOSS CLI wrapper.
 
-    PORTMANTEAU PATTERN RATIONALE: Single entry for status, validation, and future
-    run_prompt / attach so MCP clients avoid tool sprawl while we iterate v0.1.
+    PORTMANTEAU PATTERN: Single entry point for status/validate/run/async.
+
+    Operations:
+        status           — server + path health check (fast)
+        validate         — detailed OpenManus install validation (fast)
+        run_prompt       — synchronous subprocess run; waits for completion
+        run_prompt_async — fire-and-forget; returns job_id immediately
+        job_status       — poll an async job by job_id
 
     Args:
-        operation: One of: status, validate, run_prompt (run_prompt stub in v0.1).
-        prompt: Optional text for run_prompt (ignored until subprocess runner lands).
-
-    Returns:
-        Rich dict: success, message, result, recommendations.
+        operation:    One of: status, validate, run_prompt, run_prompt_async, job_status.
+        prompt:       Task text for run_prompt / run_prompt_async.
+        entry_point:  "main.py" (default) or "run_flow.py".
+        timeout_s:    Override runner timeout (seconds). Uses Settings.runner_timeout_s if None.
+        job_id:       Required for job_status.
 
     Examples:
         openmanus_bridge("status")
         openmanus_bridge("validate")
+        openmanus_bridge("run_prompt", prompt="Search the web for today's weather in Vienna")
+        openmanus_bridge("run_prompt_async", prompt="...")  # returns {job_id: ...}
+        openmanus_bridge("job_status", job_id="<id>")
     """
     start = time.perf_counter()
     settings = get_settings()
     info = describe_openmanus(settings.openmanus_root)
     op = operation.strip().lower()
 
+    # ── status ──────────────────────────────────────────────────────────────
     if op == "status":
         elapsed_ms = (time.perf_counter() - start) * 1000
         return {
@@ -103,6 +126,10 @@ async def openmanus_bridge(
                 "openmanus_path": str(info.root) if info else None,
                 "openmanus_valid": bool(info and info.looks_valid),
                 "upstream": "https://github.com/FoundationAgents/OpenManus",
+                "runner_timeout_s": settings.runner_timeout_s,
+                "job_store_max_completed": settings.job_store_max_completed,
+                "async_jobs_stored": mcp_job_store().stored_count(),
+                "async_jobs_pending": mcp_job_store().pending_count(),
             },
             "execution_time_ms": round(elapsed_ms, 2),
             "recommendations": [
@@ -112,6 +139,7 @@ async def openmanus_bridge(
             ],
         }
 
+    # ── validate ─────────────────────────────────────────────────────────────
     if op == "validate":
         if info is None:
             return {
@@ -143,16 +171,111 @@ async def openmanus_bridge(
             ),
         }
 
+    # ── run_prompt (synchronous) ─────────────────────────────────────────────
     if op == "run_prompt":
+        if not prompt or not prompt.strip():
+            return {
+                "success": False,
+                "message": "prompt is required for run_prompt",
+                "error_type": "invalid_argument",
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+        if info is None or not info.looks_valid:
+            return {
+                "success": False,
+                "message": "OPENMANUS_ROOT is not set or invalid — run validate first",
+                "error_type": "configuration",
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+
+        ep: EntryPoint = "run_flow.py" if entry_point == "run_flow.py" else "main.py"
+        t_out = timeout_s if timeout_s is not None else settings.runner_timeout_s
+
+        log.info("runner_start", op="run_prompt", entry_point=ep, timeout_s=t_out)
+        result = await _run_prompt(info.root, prompt, ep, t_out)
+        log.info(
+            "runner_done",
+            success=result.success,
+            exit_code=result.exit_code,
+            timed_out=result.timed_out,
+            ms=round(result.execution_time_ms, 1),
+        )
         return {
-            "success": False,
-            "message": "run_prompt not implemented in v0.1 — scaffold only",
-            "error_type": "not_implemented",
-            "recovery_options": [
-                'Run OpenManus directly: python main.py --prompt "..." in OPENMANUS_ROOT',
-                "Watch this repo for v0.2 subprocess runner + streaming logs",
-            ],
-            "diagnostic_info": {"prompt_received": bool(prompt and prompt.strip())},
+            "success": result.success,
+            "message": "run_prompt complete" if result.success else (result.error or "run failed"),
+            "result": result.to_dict(),
+        }
+
+    # ── run_prompt_async (fire and forget) ────────────────────────────────────
+    if op == "run_prompt_async":
+        if not prompt or not prompt.strip():
+            return {
+                "success": False,
+                "message": "prompt is required for run_prompt_async",
+                "error_type": "invalid_argument",
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+        if info is None or not info.looks_valid:
+            return {
+                "success": False,
+                "message": "OPENMANUS_ROOT is not set or invalid — run validate first",
+                "error_type": "configuration",
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+
+        ep = "run_flow.py" if entry_point == "run_flow.py" else "main.py"
+        t_out = timeout_s if timeout_s is not None else settings.runner_timeout_s
+        jid = str(uuid.uuid4())
+        store = mcp_job_store()
+        store.set_pending(jid)
+
+        async def _bg(job_id: str) -> None:
+            r = await _run_prompt(info.root, prompt, ep, t_out)  # type: ignore[arg-type]
+            store.set_result(job_id, r)
+
+        asyncio.create_task(_bg(jid))
+        log.info("runner_async_queued", job_id=jid, entry_point=ep)
+        return {
+            "success": True,
+            "message": "Job queued",
+            "job_id": jid,
+            "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            "next": f'openmanus_bridge("job_status", job_id="{jid}") to poll',
+        }
+
+    # ── job_status ────────────────────────────────────────────────────────────
+    if op == "job_status":
+        if not job_id:
+            return {
+                "success": False,
+                "message": "job_id is required for job_status",
+                "error_type": "invalid_argument",
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+        val = mcp_job_store().get(job_id)
+        if val is None:
+            return {
+                "success": False,
+                "message": f"Unknown job_id: {job_id}",
+                "error_type": "not_found",
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+        if val == "pending":
+            return {
+                "success": True,
+                "message": "pending",
+                "status": "pending",
+                "job_id": job_id,
+                "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
+            }
+        # RunResult
+        assert isinstance(val, RunResult)
+        return {
+            "success": True,
+            "message": "complete",
+            "status": "complete",
+            "job_id": job_id,
+            "result": val.to_dict(),
             "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
         }
 
@@ -160,6 +283,6 @@ async def openmanus_bridge(
         "success": False,
         "message": f"Unknown operation: {operation!r}",
         "error_type": "invalid_argument",
-        "recovery_options": ["Use operation=status | validate | run_prompt"],
+        "recovery_options": [f"Use one of: {', '.join(BRIDGE_OPERATION_NAMES)}"],
         "execution_time_ms": round((time.perf_counter() - start) * 1000, 2),
     }
