@@ -36,6 +36,17 @@
 - **My robots** — unified “my fleet” affordances from **toy/edu rovers** (e.g. [Yahboom](https://www.yahboom.net/)-class robocars) through **home robots** (e.g. **Dreame** / **Xiaomi** robot hoovers / vacuums) to **humanoids** (e.g. **Noetix** / **Bumi**-class Android-based bots), with **parallel virtual bots** (sim / digital twins) and **real hardware** under the same task and safety model. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
 - OpenManus **subprocess runner** + streaming logs, **Cursor snippet** generation from `fleet/`, stronger fleet **health** aggregation — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
 
+## Who perpetrated this
+
+| Role | Who |
+|------|-----|
+| **Vibe architect** | [sandraschi](https://github.com/sandraschi) |
+| **Implementation detail** | Lotsa LLMs |
+| **IDE / agent shell** | [Cursor](https://cursor.com/) |
+| **Security** | **Benny** the Schäferhund |
+| **Where** | Vienna — **Alsergrund** |
+| **Build time (so far)** | ~**2 hours**, lunch included |
+
 ## License
 
 MIT
