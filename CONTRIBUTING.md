@@ -9,6 +9,8 @@ uv sync --extra dev
 pre-commit install
 ```
 
+Optional: install [just](https://just.systems/) and use `just install`, `just test`, `just lint`, `just check-glama`. See [docs/GLAMA.md](docs/GLAMA.md) for `glama.json`.
+
 ## Checks
 
 ```powershell

@@ -2,7 +2,35 @@
   "$schema": "https://glama.ai/schemas/mcp.json",
   "name": "openmanus-mcp",
   "version": "0.1.0a1",
-  "description": "FastMCP 3.1 wrapper + webapp for FoundationAgents OpenManus (FOSS CLI, local LLM)",
+  "description": "FastMCP 3.1 MCP server + FastAPI + Vite webapp for FoundationAgents OpenManus (FOSS). Local LLM via upstream config. Fleet onboarding UI clones curated MCP repos.",
+  "author": "Sandra Schi",
+  "license": "MIT",
+  "language": "python",
+  "framework": "fastmcp",
+  "type": "mcp_server",
+  "status": "alpha",
+  "transport": ["stdio"],
+  "tools": 1,
+  "keywords": [
+    "openmanus",
+    "manus",
+    "mcp",
+    "fastmcp",
+    "fastmcp-3.1",
+    "ollama",
+    "local-llm",
+    "agent",
+    "fleet",
+    "windows",
+    "openmanus-bridge"
+  ],
+  "categories": [
+    "Developer Tools",
+    "AI Agents",
+    "Automation",
+    "Web Applications"
+  ],
+  "homepage": "https://github.com/sandraschi/openmanus-mcp",
   "repository": {
     "url": "https://github.com/sandraschi/openmanus-mcp",
     "source": "github"
@@ -18,5 +46,54 @@
       }
     }
   ],
+  "mcpServers": {
+    "openmanus-mcp": {
+      "name": "openmanus-mcp",
+      "command": "uv",
+      "args": ["run", "python", "-m", "openmanus_mcp"],
+      "env": {},
+      "description": "OpenManus (FOSS) bridge: openmanus_bridge (status, validate, run_prompt stub). REST API 10768, dashboard 10769, fleet onboarding.",
+      "capabilities": {
+        "tools": {
+          "enabled": true,
+          "listChanged": true
+        },
+        "resources": {
+          "enabled": false
+        },
+        "prompts": {
+          "enabled": false
+        },
+        "webapp": {
+          "enabled": true,
+          "url": "http://127.0.0.1:10769",
+          "api_url": "http://127.0.0.1:10768"
+        }
+      },
+      "timeout": {
+        "initialize": 30000,
+        "message": 120000
+      },
+      "metadata": {
+        "version": "0.1.0a1",
+        "author": "Sandra Schi",
+        "homepage": "https://github.com/sandraschi/openmanus-mcp",
+        "license": "MIT",
+        "tags": [
+          "openmanus",
+          "mcp",
+          "fastmcp-3.1",
+          "local-llm",
+          "fleet",
+          "manus"
+        ],
+        "categories": [
+          "Developer Tools",
+          "AI Agents",
+          "Web Applications"
+        ]
+      }
+    }
+  },
   "maintainers": ["sandraschi"]
 }

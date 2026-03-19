@@ -5,7 +5,7 @@
 ## Steps
 
 1. Bump **`pyproject.toml`** `[project] version` (single source for packages built with Hatch).
-2. Align **`glama.json`** `"version"` and **`web_sota/package.json`** `"version"` (npm semver: `0.1.0-alpha.N`).
+2. Align **`glama.json`** top-level `"version"`, **`mcpServers.openmanus-mcp.metadata.version`**, and **`web_sota/package.json`** `"version"` (npm semver: `0.1.0-alpha.N`).
 3. Update **`CHANGELOG.md`**.
 4. Commit and push to `main`.
 5. Tag and push:

@@ -71,6 +71,8 @@ Set-Location ..
 
 ## Development
 
+- **Just:** [justfile](justfile) — `just` / `just api` / `just test` / `just build-web` / `just check-glama` ([just.systems](https://just.systems/))
+- **Glama:** [glama.json](glama.json) + [docs/GLAMA.md](docs/GLAMA.md) (registry + `mcpServers` block, ports **10768/10769**)
 - **Lint / format:** `uv run ruff check src tests` · `uv run ruff format src tests`
 - **Pre-commit:** `uv sync --extra dev` then `pre-commit install` (Ruff check + format on commit)
 - **Contributing / releases:** [CONTRIBUTING.md](CONTRIBUTING.md) · [RELEASING.md](RELEASING.md)
