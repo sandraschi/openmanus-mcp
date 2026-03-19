@@ -8,7 +8,7 @@ Staggered, linked guides for **openmanus-mcp**. Start with **[INSTALL.md](INSTAL
 | **[TECH.md](TECH.md)** | Contributors / integrators | Stack, layout, tools, API/fleet endpoints, dev, Glama, CI |
 | **[MANUS.md](MANUS.md)** | Anyone confused by names | **Manus.im** (vendor) vs **OpenManus** (FOSS) vs **this repo** |
 | **[OPENMANUS.md](OPENMANUS.md)** | Users of the upstream agent | What [FoundationAgents/OpenManus](https://github.com/FoundationAgents/OpenManus) is, `OPENMANUS_ROOT`, local LLM |
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Builders | MCP + FastAPI + Vite, fleet onboarding, workflows, roadmap hints |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Builders | MCP + FastAPI + Vite, fleet onboarding, workflows, roadmap (*My robots*, virtual + real hardware) |
 | **[SAFETY.md](SAFETY.md)** | Anyone touching desktop/fleet | Risk model, composable stack, hard rules |
 | **[FLEET.md](FLEET.md)** | Windows fleet users | pywinauto-mcp, bootstrap script, REST/UI onboarding |
 | **[GLAMA.md](GLAMA.md)** | Registry / Glama users | `glama.json` fields and validation |
