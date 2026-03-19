@@ -81,4 +81,6 @@ See **`.env.example`**. Notable:
 
 GitHub Actions: Ruff, pytest, `web_sota` production build (see `.github/workflows/`).
 
+**Roadmap (incl. My robots):** [ARCHITECTURE.md#roadmap-informal](ARCHITECTURE.md#roadmap-informal)
+
 ← [Documentation index](README.md) · [INSTALL.md](INSTALL.md)

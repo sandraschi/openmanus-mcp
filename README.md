@@ -31,6 +31,11 @@
 - **MCP tool:** `openmanus_bridge` (`status`, `validate`, `run_prompt` stub)
 - **Standards:** [AGENT_PROTOCOLS](https://github.com/sandraschi/mcp-central-docs/blob/main/standards/AGENT_PROTOCOLS.md)
 
+## Planned / TODO
+
+- **My robots** — unified “my fleet” affordances from **toy/edu rovers** (e.g. [Yahboom](https://www.yahboom.net/)-class robocars) through **home robots** (e.g. **Dreame** / **Xiaomi** robot hoovers / vacuums) to **humanoids** (e.g. **Noetix** / **Bumi**-class Android-based bots), with **parallel virtual bots** (sim / digital twins) and **real hardware** under the same task and safety model. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
+- OpenManus **subprocess runner** + streaming logs, **Cursor snippet** generation from `fleet/`, stronger fleet **health** aggregation — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
+
 ## License
 
 MIT

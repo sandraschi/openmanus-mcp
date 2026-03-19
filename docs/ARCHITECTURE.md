@@ -45,6 +45,10 @@ For **Win32 automation**, agents typically combine **OpenManus** (reasoning) + *
 
 ## Roadmap (informal)
 
+- **My robots (planned)** — **“My robots”** functions spanning the stack: **Yahboom**-style toy / edu robocars, **Dreame** / **Xiaomi** robot hoovers (and similar LDS/VSLAM vacuums), **Noetix** / **Bumi**-style Android humanoids, etc. Design goals:
+  - **Parallel tracks:** **virtual bots** (simulation, replay, CI sandboxes, “digital twin” state) and **real bots** (live hardware, rate limits, estop) with explicit mode switching and shared task schemas where safe.
+  - **Same agent surface:** OpenManus + MCP fleet can target either track; physical actions require **hard gates** (human confirm, geofence, power/state checks) — see [SAFETY.md](SAFETY.md).
+  - **Integration shape:** likely via dedicated MCP servers (e.g. existing **yahboom-mcp** patterns in your ecosystem) and dashboard **fleet** rows for robot classes, not a single monolithic driver in this repo.
 - **Subprocess runner** for upstream OpenManus with streaming logs into the webapp.
 - **Cursor snippet generation** from onboarded `fleet/` paths.
 - Stronger **health** aggregation across fleet members (optional).
