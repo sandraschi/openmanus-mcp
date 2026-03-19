@@ -4,6 +4,7 @@
 
 ### Added
 - **Fleet automation:** `scripts/Bootstrap-Fleet.ps1`, `docs/FLEET.md`, `examples/cursor-fleet.template.json` — documents pywinauto-mcp requirement and generates Cursor MCP snippet (generated file gitignored)
+- **Fleet onboarding UI:** webapp **Fleet** page + REST `GET/POST /api/v1/fleet/*` — curated catalog in `data/fleet_catalog.json`, clones to `fleet/`, `.fleet_state.json`, optional PowerShell webapp launch (Windows)
 
 ## [0.1.0a1] - 2026-03-19
 

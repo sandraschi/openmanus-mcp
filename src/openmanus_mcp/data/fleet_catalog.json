@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "members": [
+    {
+      "id": "pywinauto-mcp",
+      "name": "PyWinAuto MCP",
+      "category": "Desktop automation",
+      "description": "Windows UI automation MCP (click, type, desktop state). Required for fleet computer-use on Win32. MCP stdio only — no bundled web UI.",
+      "github_repo": "sandraschi/pywinauto-mcp",
+      "install": { "kind": "uv_pip_editable" },
+      "webapp": null
+    },
+    {
+      "id": "openmanus-upstream",
+      "name": "OpenManus (FoundationAgents)",
+      "category": "Agent runtime",
+      "description": "Upstream FOSS agent; point OPENMANUS_ROOT at this clone and configure config.toml for local LLM (e.g. Ollama).",
+      "github_repo": "FoundationAgents/OpenManus",
+      "install": { "kind": "none" },
+      "webapp": null
+    },
+    {
+      "id": "ocr-mcp",
+      "name": "OCR MCP",
+      "category": "Document intelligence",
+      "description": "Multi-backend OCR and document tools (optional fleet member). Heavy optional backends — install extras as needed.",
+      "github_repo": "sandraschi/ocr-mcp",
+      "install": { "kind": "uv_sync_extra_dev" },
+      "webapp": null
+    }
+  ]
+}

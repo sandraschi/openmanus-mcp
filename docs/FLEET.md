@@ -12,6 +12,21 @@ For **desktop control** as described in [FLEET_COMPUTER_USE_MCP](https://github.
 | **pywinauto-mcp** | Win32 “finger”: click, type, desktop state | **Not in upstream today** — MCP stdio only; if a webapp is added later, run its `start.ps1` / README |
 | **OpenManus** (upstream) | Agent + LLM | Upstream’s own UX / CLI |
 
+## Webapp onboarding (RoboFang-style)
+
+With the API and UI running (`.\web_sota\start.ps1`), open **Fleet** in the sidebar. You get a **curated catalog** (`src/openmanus_mcp/data/fleet_catalog.json`): each row has **Onboard** (git clone into `fleet/` + install recipe) and **Start webapp** when the catalog entry defines a PowerShell script (none of the default rows ship a web UI yet; extend the JSON to add `webapp` for repos that have `web_sota/start.ps1`).
+
+State file: `fleet/.fleet_state.json` (gitignored with the rest of `fleet/*` except `.gitkeep`).
+
+REST (same as the UI uses):
+
+- `GET /api/v1/fleet/catalog`
+- `GET /api/v1/fleet/members`
+- `POST /api/v1/fleet/onboard` body `{ "member_ids": ["pywinauto-mcp"] }`
+- `POST /api/v1/fleet/webapp/start` body `{ "member_id": "..." }` (Windows, new console)
+
+Override clone root: env **`OPENMANUS_FLEET_ROOT`** (see `.env.example`).
+
 ## Automate (Windows)
 
 From the **root of this repo**:

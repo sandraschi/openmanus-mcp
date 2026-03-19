@@ -66,8 +66,8 @@ Set-Location ..
 .\web_sota\start.ps1
 ```
 
-- UI: <http://127.0.0.1:10769>  
-- API: <http://127.0.0.1:10768/api/v1/health>
+- UI: <http://127.0.0.1:10769> — sidebar **Fleet** for curated onboarding (clone into `fleet/`, install, optional webapp start)  
+- API: <http://127.0.0.1:10768/api/v1/health> · fleet APIs under `/api/v1/fleet/*`
 
 ## Development
 

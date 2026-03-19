@@ -39,3 +39,7 @@ Desktop.ini
 
 # Generated local MCP snippet (absolute paths)
 examples/cursor-fleet.generated.json
+
+# Fleet workspace (git clones + .fleet_state.json); keep marker only
+fleet/*
+!fleet/.gitkeep

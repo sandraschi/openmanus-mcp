@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from openmanus_mcp import __version__
+from openmanus_mcp.api.fleet_routes import router as fleet_router
 from openmanus_mcp.openmanus_detect import describe_openmanus
 from openmanus_mcp.settings import get_settings
 
@@ -27,6 +28,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(fleet_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health")
