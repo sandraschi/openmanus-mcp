@@ -35,6 +35,8 @@
 ## Planned / TODO
 
 - **My robots** — unified “my fleet” affordances from **toy/edu rovers** (e.g. [Yahboom](https://www.yahboom.net/)-class robocars) through **home robots** (e.g. **Dreame** / **Xiaomi** robot hoovers / vacuums) to **humanoids** (e.g. **Noetix** / **Bumi**-class Android-based bots), with **parallel virtual bots** (sim / digital twins) and **real hardware** under the same task and safety model. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
+- **OpenClaw- / OpenFang-class features (stepwise)** — **heartbeat** / liveness, **comms connectors** (routing-style integrations), **skill** surface (MCP skills + [OpenFang](https://github.com/RightNow-AI/openfang)-style `HAND.toml` / `SKILL.md` patterns where we adopt them), **multi-agentic** flows (delegation, parallel workers). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#openclaw-openfang-and-hierarchical-agents-planned).
+- **Hierarchical local agent fleet** — **orchestrator + specialized workers** on your machine, informed by **recent arXiv-style** multi-agent / routing / tree-of-agents ideas (we’ll link concrete papers in the arch doc as we implement). **Suggestions and PRs welcome.**
 - OpenManus **subprocess runner** + streaming logs, **Cursor snippet** generation from `fleet/`, stronger fleet **health** aggregation — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#roadmap-informal).
 
 ## The MCP server fleet (why this repo fits a pattern)

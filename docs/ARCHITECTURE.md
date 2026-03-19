@@ -53,4 +53,28 @@ For **Win32 automation**, agents typically combine **OpenManus** (reasoning) + *
 - **Cursor snippet generation** from onboarded `fleet/` paths.
 - Stronger **health** aggregation across fleet members (optional).
 
+## OpenClaw OpenFang and hierarchical agents (planned)
+
+**Stepwise** adoption — no big-bang rewrite. Names align with ecosystem usage elsewhere (e.g. **OpenClaw** as *comms / message-routing* idioms, **OpenFang** as *hand + skill bundle* idioms).
+
+| Phase | Focus | Notes |
+|-------|--------|--------|
+| **1 — Heartbeat** | **Liveness** for this API, onboarded `fleet/` members, and (later) attached MCP processes | Timestamps, `/api/v1/health` depth, optional push to UI badges |
+| **2 — Comms connectors** | **OpenClaw-class** patterns: **routing** notifications and events over **connectors** (chat, email, webhooks — whatever we standardize) without turning this repo into a full gateway | Start read-only or outbound-only; [SAFETY.md](SAFETY.md) for abuse model |
+| **3 — Skill integration** | **FastMCP 3.x** skills/resources where they fit; optional import of **[OpenFang](https://github.com/RightNow-AI/openfang)**-style **`HAND.toml` / `SKILL.md`** bundles as *documented* adapters (same separation idea as RoboFang’s OpenFang adapter — mapping layer, not silent merge) | Version manifests; no skill name collisions with `openmanus_bridge` |
+| **4 — Multi-agentic** | **Multiple agents** sharing context: planner + executor + critic, or **parallel** task branches with merge policy | Prefer **local** orchestration; optional bridge to a hub (e.g. RoboFang-style) later |
+
+### Hierarchical local agent fleet (arXiv-informed)
+
+Goal: a **tree or DAG of local agents** (orchestrator → specialists → tools) inspired by **recent** multi-agent / hierarchical RL / routing papers on arXiv — without committing to one architecture in v0.1.
+
+**Design knobs (suggestions welcome):**
+
+- **Router vs fixed tree:** dynamic **specialist spawn** vs static **role graph**.
+- **Shared memory:** what lives in **OpenManus** vs **this** API vs **external** MCP memory servers.
+- **Budgets:** token, wall-clock, and **tool-call** caps per subtree.
+- **Audit:** structured log of **who delegated to whom** (deliberation-style), exportable for debugging.
+
+**Contributing:** open an issue with **arXiv ID + one paragraph** on how it maps to local MCP; we’ll curate a short **reading list** in this section as ideas land.
+
 ← [Documentation index](README.md) · [TECH.md](TECH.md)

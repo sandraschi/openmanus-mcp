@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Roadmap: **OpenClaw- / OpenFang-class** stepwise plan (heartbeat, comms connectors, skills, multi-agentic) + **hierarchical local agent fleet** (arXiv-informed); [ARCHITECTURE.md](docs/ARCHITECTURE.md) section + README [Planned / TODO](README.md#planned--todo)
 - **[docs/FLEET_CONTEXT.md](docs/FLEET_CONTEXT.md)** + README blurb: sandraschi MCP fleet (months, mostly private), MCP + React pattern, OpenManus / robotics / Resonite / World Labs examples
 - README **Planned / TODO:** **My robots** roadmap (Yahboom-class → Dreame/Xiaomi hoovers → Noetix/Bumi-class Androids; virtual + real parallel handling); expanded in [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Staggered docs:** [docs/README.md](docs/README.md) hub + [INSTALL](docs/INSTALL.md), [TECH](docs/TECH.md), [MANUS](docs/MANUS.md), [OPENMANUS](docs/OPENMANUS.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [SAFETY](docs/SAFETY.md); root [README.md](README.md) shortened; [SECURITY.md](SECURITY.md)
