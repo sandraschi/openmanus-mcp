@@ -9,6 +9,8 @@
 | **Webapp ports** | Backend **10768**, frontend **10769** ([WEBAPP_PORTS](https://github.com/sandraschi/mcp-central-docs/blob/main/operations/WEBAPP_PORTS.md)) |
 | **Standards** | [mcp-central-docs / AGENT_PROTOCOLS](https://github.com/sandraschi/mcp-central-docs/blob/main/standards/AGENT_PROTOCOLS.md) |
 
+**GitHub topics:** `manus` `openmanus` `mcp` `ollama` `local-llm` `zeropaid` `fuckzuck` `cli-wrapper` — set under repo **Settings → General → Topics**, or see [.github/TOPICS.md](.github/TOPICS.md) for a `gh repo edit` one-liner.
+
 ## Status
 
 **v0.1.0 scaffold** — MCP tool `openmanus_bridge` (`status`, `validate`, `run_prompt` stub), FastAPI health/status, web shell. Subprocess runner + streaming UI next.
