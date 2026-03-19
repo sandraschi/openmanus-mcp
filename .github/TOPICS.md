@@ -1,5 +1,14 @@
 # GitHub repository topics
 
+**Applied on 2026-03-19** via `gh repo edit` (topics: `cli-wrapper`, `fuckzuck`, `local-llm`, `manus`, `mcp`, `ollama`, `openmanus`, `zeropaid`). Verify: `gh api repos/sandraschi/openmanus-mcp --jq .topics`
+
+If **`gh` is not on PATH** in Cursor, use the full binary:
+
+`& "C:\Program Files\GitHub CLI\gh.exe" ...`  
+See [mcp-central-docs: GITHUB_CLI_CURSOR_PATH.md](https://github.com/sandraschi/mcp-central-docs/blob/main/operations/GITHUB_CLI_CURSOR_PATH.md).
+
+---
+
 Set under **Settings → General → Topics** on the repo, or with **GitHub CLI** (when `gh` is on your `PATH`):
 
 ```powershell
