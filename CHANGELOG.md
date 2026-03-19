@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **Fleet automation:** `scripts/Bootstrap-Fleet.ps1`, `docs/FLEET.md`, `examples/cursor-fleet.template.json` — documents pywinauto-mcp requirement and generates Cursor MCP snippet (generated file gitignored)
+
 ## [0.1.0a1] - 2026-03-19
 
 ### Added

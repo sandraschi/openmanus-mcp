@@ -91,7 +91,11 @@ tests/
 
 ## Fleet: “My Computer”–class desktop control
 
-Vendor desktop agents are one bundle; **our** approach is **composable MCP**: run **OpenManus** with **`config/mcp.json`** attaching **[pywinauto-mcp](https://github.com/sandraschi/pywinauto-mcp)** (Win32 click/type/scrape) plus OCR / Windows-ops servers as needed. **High risk** — use VMs, allowlists, and human gates. Architecture write-up: [mcp-central-docs — FLEET_COMPUTER_USE_MCP.md](https://github.com/sandraschi/mcp-central-docs/blob/main/patterns/FLEET_COMPUTER_USE_MCP.md).
+**This repo alone does not give you desktop automation.** For the full composable stack you also install **[pywinauto-mcp](https://github.com/sandraschi/pywinauto-mcp)** (Windows UI MCP) and register **both** servers in your client. **openmanus-mcp** provides the dashboard webapp (**10769**); upstream **pywinauto-mcp** is currently **MCP-only** (no separate webapp in that repo).
+
+**Automate (Windows):** from repo root run `.\scripts\Bootstrap-Fleet.ps1` — clones/siblings **pywinauto-mcp**, creates its `.venv`, `uv pip install -e .`, syncs this repo + `web_sota` npm, and writes **`examples/cursor-fleet.generated.json`** (gitignored) for Cursor. Details: **[docs/FLEET.md](docs/FLEET.md)** · template **`examples/cursor-fleet.template.json`**.
+
+Vendor desktop agents are one bundle; **our** approach is **composable MCP**: OpenManus-style agents plus **[pywinauto-mcp](https://github.com/sandraschi/pywinauto-mcp)** (Win32 click/type/scrape) plus OCR / Windows-ops servers as needed. **High risk** — use VMs, allowlists, and human gates. Architecture: [mcp-central-docs — FLEET_COMPUTER_USE_MCP.md](https://github.com/sandraschi/mcp-central-docs/blob/main/patterns/FLEET_COMPUTER_USE_MCP.md).
 
 ## License
 

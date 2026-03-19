@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "openmanus-mcp": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "openmanus_mcp"],
+      "cwd": "REPLACE_WITH_ABSOLUTE_PATH_TO_OPENMANUS_MCP_CLONE"
+    },
+    "pywinauto-mcp": {
+      "command": "REPLACE_WITH_ABSOLUTE_PATH_TO_PYWINAUTO_VENV_PYTHON",
+      "args": ["-m", "pywinauto_mcp"],
+      "cwd": "REPLACE_WITH_ABSOLUTE_PATH_TO_PYWINAUTO_MCP_CLONE"
+    }
+  }
+}
