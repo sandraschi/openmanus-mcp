@@ -24,13 +24,13 @@ Use your own **Ollama**, **LM Studio**, or other local endpoints; this repo stay
 
 ## What you get
 
-### For Agents
-
-**MCP** over stdio: tool **`openmanus_bridge`** so **Cursor**, **Claude Desktop**, **Glama**, and friends can check the OpenManus install, run prompts, and poll async jobs without leaving the editor.
-
 ### For Humans
 
-**Webapp** to **start and control** tasks: run OpenManus (sync or queued), pick presets and activities, chat with a **local** model, onboard other **MCP servers** into your **fleet**, and skim API help. One **`start.ps1`** (or your own process) brings up UI + backend together — see [INSTALL.md](docs/INSTALL.md).
+**Webapp** to **start and control** tasks: run OpenManus (sync or queued), pick presets and activities, chat with a **local** model, onboard other **MCP servers** into your **fleet**, and skim API help. Getting it running step by step: [INSTALL.md](docs/INSTALL.md).
+
+### For Agents
+
+**MCP** from **Cursor**, **Claude Desktop**, **Glama**, and similar hosts. Implemented with **[FastMCP 3.1+](https://github.com/jlowin/fastmcp)**; tool **`openmanus_bridge`** checks your OpenManus install, runs prompts, and polls async jobs without leaving the editor. Client setup: [INSTALL.md](docs/INSTALL.md) · transport and API shape: [TECH.md](docs/TECH.md).
 
 ### MCP server fleet
 
