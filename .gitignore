@@ -43,3 +43,5 @@ examples/cursor-fleet.generated.json
 # Fleet workspace (git clones + .fleet_state.json); keep marker only
 fleet/*
 !fleet/.gitkeep
+# Rust / Zed IDE — rust-analyzer may create target/ at repo root
+target/
