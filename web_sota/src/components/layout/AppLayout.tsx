@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   Activity,
+  Bot,
   Box,
   CircleHelp,
   Home,
@@ -31,6 +32,7 @@ const PATH_TITLE: Record<string, string> = {
   "/settings": "Settings",
   "/run": "Run",
   "/fleet": "Fleet",
+  "/robots": "My Robots",
 };
 
 const coreNav: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -44,6 +46,7 @@ const coreNav: { to: string; label: string; icon: React.ComponentType<{ classNam
 const projectNav: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { to: "/run", label: "Run", icon: PlayCircle },
   { to: "/fleet", label: "Fleet", icon: Layers },
+  { to: "/robots", label: "My Robots", icon: Bot },
 ];
 
 function SidebarNav({

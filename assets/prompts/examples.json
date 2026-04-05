@@ -1,0 +1,44 @@
+[
+  {
+    "input": "Check the status of the bridge",
+    "output": {
+      "tool": "openmanus_bridge",
+      "args": { "operation": "status" }
+    }
+  },
+  {
+    "input": "Validate if OpenManus is ready to execute tasks",
+    "output": {
+      "tool": "openmanus_bridge",
+      "args": { "operation": "validate" }
+    }
+  },
+  {
+    "input": "Run a synchronous task to check the current weather in Vienna",
+    "output": {
+      "tool": "openmanus_bridge",
+      "args": { "operation": "run_prompt", "prompt": "Check the weather in Vienna" }
+    }
+  },
+  {
+    "input": "Start a long-running research task into quantum entanglement",
+    "output": {
+      "tool": "openmanus_bridge",
+      "args": { "operation": "run_prompt_async", "prompt": "Research the current state of quantum entanglement experiments 2026" }
+    }
+  },
+  {
+    "input": "Check the status of job job_550e8400",
+    "output": {
+      "tool": "openmanus_bridge",
+      "args": { "operation": "job_status", "job_id": "job_550e8400" }
+    }
+  },
+  {
+    "input": "Demonstrate host sampling relay",
+    "output": {
+      "tool": "sampling_relay",
+      "args": {}
+    }
+  }
+]

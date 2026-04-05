@@ -4,7 +4,7 @@
 
 ```text
 ┌─────────────────┐     stdio      ┌──────────────────┐
-│  MCP client     │◄──────────────►│  openmanus_mcp   │
+│  MCP client     │◄──────────────►│  openmanus_bridge   │
 │  (Cursor, etc.)  │                │  FastMCP server  │
 └─────────────────┘                └────────┬─────────┘
                                           │
@@ -15,15 +15,29 @@
             │  .env /      │    │  FastAPI        │   │  Runner      │
             │  OPENMANUS_  │    │  :10768         │   │  subprocess  │
             │  ROOT probe  │    │  /api/v1/*      │   │  (OpenManus) │
-            └──────────────┘    └────────┬────────┘   └──────────────┘
-                                         │ HTTP (proxy /api)
-                                         ▼
-                                ┌─────────────────┐
-                                │  Vite React     │
-                                │  :10769         │
-                                │  Dashboard+Fleet│
+            └──────────────┘    └────────┬────────┘   └──────┬───────┘
+                                         │                    │
+                                         ▼                    ▼
+                                ┌─────────────────┐   ┌──────────────┐
+                                │  Vite React     │   │  JobStore    │
+                                │  :10769         │   │  (JSON Disk) │
+                                │  Dashboard+Fleet│   └──────────────┘
                                 └─────────────────┘
 ```
+
+## 1. Portmanteau Bridge Pattern
+In the SOTA Fleet architecture, **openmanus-mcp** acts as a **Portmanteau Bridge**. Instead of merging the OpenManus reasoning engine directly into the MCP process, it wraps it in a managed lifecycle.
+
+- **Isolation**: Crashes in the agent engine do not take down the MCP server.
+- **Environment Parity**: The bridge handles different Python environments (venvs) automatically.
+- **State Management**: The bridge provides a unified persistence layer for many ephemeral engine runs.
+
+## 2. Persistent JobStore (Disk-Based)
+As of v1.2.0, the **JobStore** has transitioned from in-memory FIFO to a **disk-persistent JSON store**.
+
+- **Location**: `%USERPROFILE%/.openmanus-mcp/jobs.json`
+- **Concurrency**: State is shared between the **stdio MCP process** and the **FastAPI background worker**.
+- **Atomicity**: Incremental writes and state synchronization ensure that background jobs fired via the Dashboard are visible to the MCP client (and vice versa).
 
 ### FastAPI subsystems (beyond fleet + run)
 
@@ -36,8 +50,14 @@
 
 Details: [SUPERVISOR.md](SUPERVISOR.md) · [SKILLS_OPENCLAW.md](SKILLS_OPENCLAW.md)
 
-## Request flows
+## 3. Tool Hierarchy & Sampling
+The bridge leverages **FastMCP 3.2.0** automated workflows to enable cross-agent coordination.
 
+- **Prompts**: Standardized `mcp.prompt()` templates provide **System Context** to the host LLM about how to best leverage OpenManus.
+- **Sampling**: The `sampling_relay` tool allows the bridge to delegate complex reasoning *back* to the host LLM (e.g., Cursor or Antigravity) when necessary.
+- **Supervisor**: A background tick service that can schedule periodic tasks without human intervention.
+
+## 4. Request flows
 1. **MCP tool call** — Client sends JSON-RPC over stdio → **`openmanus_bridge`** → reads **settings** / **`describe_openmanus`** → returns structured dict (success / errors / timings).
 2. **Dashboard** — Browser loads UI from **10769**; XHR to **`/api/v1/*`** proxied to **10768**.
 3. **Fleet onboard** — UI or POST **`/api/v1/fleet/onboard`** → **`fleet/service`**: `git clone` / `pull` under **`fleet/`** (or **`OPENMANUS_FLEET_ROOT`**), optional **`uv`** install recipe → **`.fleet_state.json`**.

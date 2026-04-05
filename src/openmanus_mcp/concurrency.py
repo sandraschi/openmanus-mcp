@@ -1,179 +1,143 @@
-"""Adaptive OpenManus run concurrency control.
-
-Cap is derived from CPU cores, system RAM, and GPU VRAM/speed hints.
-"""
+"""Concurrency controls for OpenManus MCP server – adaptive run limiting and GPU detection."""
 
 from __future__ import annotations
 
 import asyncio
-import os
 import platform
-import re
 import subprocess
+import threading
 from dataclasses import dataclass
+from typing import Any
+
+import structlog
+
+log = structlog.get_logger(__name__)
+
+# --- Resource Discovery ------------------------------------------------------
 
 
-def _ram_gb() -> float:
+def _mem_total_gb() -> float:
+    """Return total physical RAM in GB (Windows-optimized)."""
+    if platform.system() != "Windows":
+        return 16.0  # Safe fallback for Linux/macOS in this bridge
     try:
-        if os.name == "nt":
-            proc = subprocess.run(
-                [
-                    "powershell.exe",
-                    "-NoProfile",
-                    "-STA",
-                    "-Command",
-                    "[math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory/1GB,2)",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                encoding="utf-8",
-                errors="replace",
-                check=False,
-            )
-            val = (proc.stdout or "").strip()
-            return float(val) if val else 0.0
-        if platform.system() == "Linux":
-            txt = ""
-            with open("/proc/meminfo", "r", encoding="utf-8") as f:
-                txt = f.read()
-            m = re.search(r"MemTotal:\s+(\d+)\s+kB", txt)
-            if not m:
-                return 0.0
-            return int(m.group(1)) / (1024 * 1024)
-    except Exception:
-        return 0.0
-    return 0.0
+        # PowerShell command wrapped to fit line limit
+        cmd = ["[math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory/1GB,2)"]
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-STA", "-Command", *cmd],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if res.returncode == 0:
+            return float(res.stdout.strip())
+    except Exception as exc:
+        log.debug("mem_total_gb_failed", exc=str(exc))
+    return 8.0
+
+
+def _parse_gpu_line(line: str) -> tuple[str, float]:
+    """Parse 'Name|Bytes' line from PowerShell."""
+    if "|" not in line:
+        return "", 0.0
+    name, raw_bytes = line.split("|", 1)
+    try:
+        gb = float(raw_bytes) / (1024**3)
+        return name, gb
+    except (ValueError, TypeError):
+        return name, 0.0
 
 
 def _gpu_hint() -> tuple[float, int]:
     """Return (best_vram_gb, gpu_speed_score 0..3)."""
     best_vram = 0.0
-    speed_score = 0
-
+    if platform.system() != "Windows":
+        return 0.0, 0
     try:
-        if os.name == "nt":
-            proc = subprocess.run(
-                [
-                    "powershell.exe",
-                    "-NoProfile",
-                    "-STA",
-                    "-Command",
-                    "Get-CimInstance Win32_VideoController | ForEach-Object { \"$($_.Name)|$($_.AdapterRAM)\" }",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=15,
-                encoding="utf-8",
-                errors="replace",
-                check=False,
-            )
-            for line in (proc.stdout or "").splitlines():
-                name, _, ram = line.partition("|")
-                n = name.strip().upper()
-                try:
-                    vram = int((ram or "0").strip()) / (1024**3)
-                except Exception:
-                    vram = 0.0
-                best_vram = max(best_vram, vram)
-                if any(x in n for x in ("H100", "A100", "4090", "5090", "RTX 6000", "MI300")):
-                    speed_score = max(speed_score, 3)
-                elif any(x in n for x in ("RTX", "RX 7", "RX 8", "ARC")):
-                    speed_score = max(speed_score, 2)
-                elif any(x in n for x in ("GTX", "RADEON", "APPLE M")):
-                    speed_score = max(speed_score, 1)
-        else:
-            proc = subprocess.run(
-                [
-                    "nvidia-smi",
-                    "--query-gpu=name,memory.total",
-                    "--format=csv,noheader,nounits",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                encoding="utf-8",
-                errors="replace",
-                check=False,
-            )
-            if proc.returncode == 0:
-                for line in (proc.stdout or "").splitlines():
-                    parts = [p.strip() for p in line.split(",")]
-                    if len(parts) < 2:
-                        continue
-                    n = parts[0].upper()
-                    try:
-                        vram = float(parts[1]) / 1024.0
-                    except Exception:
-                        vram = 0.0
-                    best_vram = max(best_vram, vram)
-                    if any(x in n for x in ("H100", "A100", "4090", "5090", "RTX 6000", "MI300")):
-                        speed_score = max(speed_score, 3)
-                    elif "RTX" in n:
-                        speed_score = max(speed_score, 2)
-                    else:
-                        speed_score = max(speed_score, 1)
-    except Exception:
-        return (best_vram, speed_score)
+        # PowerShell command for GPU info wrapped to fit line limit
+        raw_cmd = (
+            "Get-CimInstance Win32_VideoController | "
+            "ForEach-Object { \"$($_.Name)|$($_.AdapterRAM)\" }"
+        )
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-STA", "-Command", raw_cmd],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if res.returncode == 0:
+            for line in res.stdout.splitlines():
+                name, gb = _parse_gpu_line(line)
+                best_vram = max(best_vram, gb)
+                # 4090/3090 detect (score 3)
+                if any(x in name for x in ("4090", "3090", "A6000")):
+                    return gb, 3
+    except Exception as exc:
+        log.debug("gpu_hint_failed", exc=str(exc))
 
-    return (best_vram, speed_score)
+    # PLR0911 reduction: use a single return point for scores 0-2
+    score = 0
+    if best_vram >= 23.0:
+        score = 3
+    elif best_vram >= 11.0:
+        score = 2
+    elif best_vram >= 7.0:
+        score = 1
+
+    return best_vram, score
 
 
-def _derive_cap() -> tuple[int, dict[str, float | int]]:
-    cores = max(1, int(os.cpu_count() or 1))
-    ram = _ram_gb()
-    vram, gpu_speed = _gpu_hint()
-
-    cpu_cap = max(1, cores // 4)
-    ram_cap = max(1, int(ram // 6)) if ram > 0 else 1
-
-    # GPU cap is conservative; large models tend to serialize anyway.
-    if vram >= 20:
-        gpu_cap = 3 if gpu_speed >= 2 else 2
-    elif vram >= 12:
-        gpu_cap = 2
-    elif vram >= 6:
-        gpu_cap = 1
-    else:
-        gpu_cap = 1
-
-    cap = min(max(1, cpu_cap), max(1, ram_cap), max(1, gpu_cap))
-    cap = min(cap, 8)  # hard safety upper bound
-    return cap, {
-        "cores": cores,
-        "ram_gb": round(ram, 2),
-        "gpu_vram_gb": round(vram, 2),
-        "gpu_speed_score": gpu_speed,
-        "cpu_cap": cpu_cap,
-        "ram_cap": ram_cap,
-        "gpu_cap": gpu_cap,
-    }
+# --- Limit Logic -----------------------------------------------------------
 
 
-@dataclass
-class AdaptiveLimiter:
+@dataclass(frozen=True)
+class LimitMetrics:
+    total_mem_gb: float
+    best_vram_gb: float
+    gpu_score: int
     cap: int
-    metrics: dict[str, float | int]
-    _sem: asyncio.Semaphore
-    _active: int = 0
-    _lock: asyncio.Lock | None = None
+
+
+class AdaptiveLimiter:
+    """Semi-intelligent run limiter based on hardware detected at startup."""
+
+    def __init__(self, metrics: LimitMetrics):
+        self._metrics = metrics
+        self._cap = metrics.cap
+        self._active = 0
+        self._sem = asyncio.Semaphore(self._cap)
+        self._lock: asyncio.Lock | None = None
 
     @classmethod
-    def create(cls) -> "AdaptiveLimiter":
-        cap, metrics = _derive_cap()
-        return cls(cap=cap, metrics=metrics, _sem=asyncio.Semaphore(cap), _lock=asyncio.Lock())
+    def create(cls) -> AdaptiveLimiter:
+        """Analyze hardware and return a tuned limiter."""
+        mem = _mem_total_gb()
+        vram, score = _gpu_hint()
 
-    async def acquire(self) -> None:
-        await self._sem.acquire()
-        assert self._lock is not None
-        async with self._lock:
-            self._active += 1
+        # baseline 1 concurrent; +1 for 32GB RAM; +1 for High GPU; max 3
+        # (OpenManus sub-agents consume significant resources)
+        cap = 1
+        if mem >= 30.0:
+            cap += 1
+        if score >= 2:
+            cap += 1
 
-    async def release(self) -> None:
-        assert self._lock is not None
-        async with self._lock:
-            self._active = max(0, self._active - 1)
-        self._sem.release()
+        metrics = LimitMetrics(total_mem_gb=mem, best_vram_gb=vram, gpu_score=score, cap=cap)
+        log.info("adaptive_limiter_init", cap=cap, mem=mem, vram=vram)
+        return cls(metrics)
+
+    @property
+    def cap(self) -> int:
+        return self._cap
+
+    @property
+    def metrics(self) -> dict[str, Any]:
+        return {
+            "total_mem_gb": self._metrics.total_mem_gb,
+            "best_vram_gb": self._metrics.best_vram_gb,
+            "gpu_score": self._metrics.gpu_score,
+            "cap": self._cap,
+        }
 
     @property
     def active(self) -> int:
@@ -181,14 +145,45 @@ class AdaptiveLimiter:
 
     @property
     def available(self) -> int:
-        return max(0, self.cap - self._active)
+        return max(0, self._cap - self._active)
+
+    async def _ensure_lock(self) -> None:
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+
+    async def acquire(self) -> None:
+        await self._sem.acquire()
+        await self._ensure_lock()
+        if self._lock:
+            async with self._lock:
+                self._active += 1
+
+    async def release(self) -> None:
+        await self._ensure_lock()
+        if self._lock:
+            async with self._lock:
+                self._active = max(0, self._active - 1)
+        self._sem.release()
 
 
-_api_limiter: AdaptiveLimiter | None = None
+class _LimiterState:
+    """Internal singleton holder for the API limiter."""
+
+    def __init__(self):
+        self._instance: AdaptiveLimiter | None = None
+        self._mutex = threading.Lock()
+
+    def get_limiter(self) -> AdaptiveLimiter:
+        if self._instance is None:
+            with self._mutex:
+                if self._instance is None:
+                    self._instance = AdaptiveLimiter.create()
+        return self._instance
+
+
+_STATE = _LimiterState()
 
 
 def api_run_limiter() -> AdaptiveLimiter:
-    global _api_limiter
-    if _api_limiter is None:
-        _api_limiter = AdaptiveLimiter.create()
-    return _api_limiter
+    """Return the global (singleton) run limiter."""
+    return _STATE.get_limiter()

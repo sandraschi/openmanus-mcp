@@ -6,6 +6,7 @@ import AppsPage from "./pages/Apps";
 import FleetPage from "./pages/Fleet";
 import HelpPage from "./pages/Help";
 import HomePage from "./pages/Home";
+import RobotsPage from "./pages/Robots";
 import RunPage from "./pages/Run";
 import SettingsPage from "./pages/Settings";
 import ToolsPage from "./pages/Tools";
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/run" element={<RunPage />} />
         <Route path="/fleet" element={<FleetPage />} />
+        <Route path="/robots" element={<RobotsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

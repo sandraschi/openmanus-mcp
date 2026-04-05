@@ -41,6 +41,10 @@ class Settings(BaseSettings):
             "Env OPENMANUS_JOB_STORE_MAX_COMPLETED."
         ),
     )
+    job_store_path: Path = Field(
+        default=Path.home() / ".openmanus-mcp" / "jobs.json",
+        description="Path to local JSON job persistence. Env OPENMANUS_JOB_STORE_PATH.",
+    )
     ollama_base_url: str = Field(
         default="http://127.0.0.1:11434",
         description="Ollama base URL (OPENMANUS_OLLAMA_BASE_URL or OLLAMA_BASE_URL).",
@@ -78,7 +82,10 @@ class Settings(BaseSettings):
         default=24_000,
         ge=1024,
         le=200_000,
-        description="Max characters when inlining a SKILL.md into chat. Env OPENMANUS_MAX_SKILL_INJECT_CHARS.",
+        description=(
+            "Max characters when inlining a SKILL.md into chat. "
+            "Env OPENMANUS_MAX_SKILL_INJECT_CHARS."
+        ),
         validation_alias=AliasChoices("OPENMANUS_MAX_SKILL_INJECT_CHARS", "MAX_SKILL_INJECT_CHARS"),
     )
 

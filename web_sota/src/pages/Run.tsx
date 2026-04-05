@@ -8,12 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLogger } from "@/contexts/LoggerContext";
 
+const MAX_RUN_SKILL_IDS = 8;
+
 type Status = {
   openmanus_valid: boolean;
   openmanus_root: string | null;
   runner_timeout_s: number;
   job_store_max_completed?: number;
   async_jobs_pending?: number;
+};
+
+type CatalogSkill = {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  source: string;
 };
 
 type PromptPreset = {
@@ -169,6 +179,10 @@ export default function RunPage() {
   const [busy, setBusy] = useState<"sync" | "async" | "poll" | null>(null);
   const [resultJson, setResultJson] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [catalogSkills, setCatalogSkills] = useState<CatalogSkill[]>([]);
+  const [skillsLoadError, setSkillsLoadError] = useState<string | null>(null);
+  const [runSkillIds, setRunSkillIds] = useState<string[]>([]);
+  const [appendingSkills, setAppendingSkills] = useState(false);
 
   const loadStatus = useCallback(async () => {
     try {
@@ -183,6 +197,25 @@ export default function RunPage() {
   useEffect(() => {
     void loadStatus();
   }, [loadStatus]);
+
+  useEffect(() => {
+    let c = false;
+    void (async () => {
+      try {
+        const r = await fetch("/api/v1/skills");
+        const data = (await r.json()) as { skills?: CatalogSkill[] };
+        if (!c && Array.isArray(data.skills)) {
+          setCatalogSkills(data.skills);
+          setSkillsLoadError(null);
+        }
+      } catch (e) {
+        if (!c) setSkillsLoadError(String(e));
+      }
+    })();
+    return () => {
+      c = true;
+    };
+  }, []);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -229,11 +262,52 @@ export default function RunPage() {
   const bodyPayload = () => {
     const timeout_s = timeoutStr.trim() === "" ? null : Number.parseFloat(timeoutStr);
     const t = Number.isFinite(timeout_s as number) ? timeout_s : null;
+    const ids = runSkillIds.slice(0, MAX_RUN_SKILL_IDS);
     return {
       prompt: prompt.trim(),
       entry_point: entryPoint,
+      ...(ids.length > 0 ? { skill_ids: ids } : {}),
       ...(t != null ? { timeout_s: t } : {}),
     };
+  };
+
+  const toggleRunSkill = (id: string) => {
+    setRunSkillIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_RUN_SKILL_IDS) {
+        appendLog("SOTA-WARN", `At most ${MAX_RUN_SKILL_IDS} skills per run.`);
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
+
+  const appendSelectedSkillBodies = async () => {
+    if (runSkillIds.length === 0) {
+      appendLog("SOTA-WARN", "Select at least one skill to append.");
+      return;
+    }
+    setAppendingSkills(true);
+    try {
+      const parts: string[] = [];
+      for (const id of runSkillIds.slice(0, MAX_RUN_SKILL_IDS)) {
+        const r = await fetch(`/api/v1/skills/${encodeURIComponent(id)}`);
+        if (!r.ok) {
+          appendLog("ERROR", `skills/${id}: HTTP ${r.status}`);
+          continue;
+        }
+        const j = (await r.json()) as { body?: string };
+        if (j.body) parts.push(`<!-- skill: ${id} -->\n${j.body.trim()}`);
+      }
+      if (parts.length === 0) return;
+      const block = parts.join("\n\n---\n\n");
+      setPrompt((p) => (p.trim() ? `${p.trim()}\n\n---\n\n${block}` : block));
+      appendLog("INFO", `Appended ${parts.length} SKILL.md body(ies) to prompt (client-side).`);
+    } catch (e) {
+      appendLog("ERROR", String(e));
+    } finally {
+      setAppendingSkills(false);
+    }
   };
 
   const runSync = async () => {
@@ -351,7 +425,8 @@ export default function RunPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Run OpenManus</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           <code className="rounded bg-muted px-1">POST /api/v1/run</code> (sync) or{" "}
-          <code className="rounded bg-muted px-1">/api/v1/run/async</code>. Requires <strong>OPENMANUS_ROOT</strong> on the API. Supervisor:{" "}
+          <code className="rounded bg-muted px-1">/api/v1/run/async</code> (optional <strong>skill_ids</strong>). Requires{" "}
+          <strong>OPENMANUS_ROOT</strong> on the API. Supervisor:{" "}
           <code className="rounded bg-muted px-1">/api/v1/supervisor/heartbeat</code> · schedules under{" "}
           <code className="rounded bg-muted px-1">/api/v1/supervisor/schedules</code> (enable with{" "}
           <code className="rounded bg-muted px-1">OPENMANUS_SUPERVISOR_ENABLED=true</code>). Stdio MCP:{" "}
@@ -466,6 +541,53 @@ export default function RunPage() {
                 </Button>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-3 pt-6">
+          <div>
+            <p className="text-sm font-medium">Skills for this run</p>
+            <p className="text-xs text-muted-foreground">
+              Checked ids are sent as <code className="rounded bg-muted px-1">skill_ids</code> — the API prepends full playbooks server-side (max {MAX_RUN_SKILL_IDS}).{" "}
+              <strong>Append to prompt</strong> copies raw <code className="rounded bg-muted px-1">SKILL.md</code> into the box below for editing.
+            </p>
+          </div>
+          {skillsLoadError ? (
+            <p className="text-xs text-destructive">Skills catalog: {skillsLoadError}</p>
+          ) : catalogSkills.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Loading skills…</p>
+          ) : (
+            <ul className="space-y-2">
+              {catalogSkills.map((s) => (
+                <li key={s.id} className="flex gap-3 rounded-md border border-border/60 p-2">
+                  <input
+                    type="checkbox"
+                    id={`run-skill-${s.id}`}
+                    className="mt-1 h-4 w-4 shrink-0"
+                    checked={runSkillIds.includes(s.id)}
+                    onChange={() => toggleRunSkill(s.id)}
+                  />
+                  <label htmlFor={`run-skill-${s.id}`} className="min-w-0 cursor-pointer text-sm">
+                    <span className="font-medium">{s.name}</span>{" "}
+                    <code className="text-[11px] text-muted-foreground">({s.id})</code>
+                    <div className="text-xs text-muted-foreground">{s.description}</div>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="secondary" size="sm" disabled={appendingSkills || runSkillIds.length === 0} onClick={() => void appendSelectedSkillBodies()}>
+              {appendingSkills ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Append to prompt
+            </Button>
+            {runSkillIds.length > 0 ? (
+              <span className="self-center text-xs text-muted-foreground">
+                {runSkillIds.length} selected for <code className="rounded bg-muted px-1">skill_ids</code>
+              </span>
+            ) : null}
           </div>
         </CardContent>
       </Card>

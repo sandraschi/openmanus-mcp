@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -34,9 +35,12 @@ from openmanus_mcp.runner import EntryPoint, RunResult
 from openmanus_mcp.runner import run_prompt as _run_prompt
 from openmanus_mcp.settings import get_settings
 from openmanus_mcp.skills_catalog import (
+    ChatContext,
+    SkillConfig,
     assemble_chat_system_layers,
     discover_skills,
     estimate_skills_prompt_chars,
+    prepend_skills_to_run_prompt,
     read_skill_body,
 )
 from openmanus_mcp.supervisor.schedules import schedule_count
@@ -59,15 +63,23 @@ app = FastAPI(
     lifespan=_lifespan,
 )
 
+_ui_port = int(get_settings().api_port) + 1
+try:
+    _ui_port = int(os.environ.get("OPENMANUS_MCP_UI_PORT", str(_ui_port)))
+except ValueError:
+    _ui_port = int(get_settings().api_port) + 1
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://127.0.0.1:10769",
-        "http://localhost:10769",
+        f"http://127.0.0.1:{_ui_port}",
+        f"http://localhost:{_ui_port}",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Local-only dashboard variants (for alternate mapped ports like federation hubs).
+    allow_origin_regex=r"^https?://(127\.0\.0\.1|localhost)(:\d+)?$",
 )
 
 app.include_router(fleet_router, prefix="/api/v1")
@@ -157,7 +169,7 @@ async def skills_one(skill_id: str) -> dict[str, Any]:
 
 @app.get("/api/v1/system/gpu")
 async def system_gpu() -> dict[str, Any]:
-    """Host GPU / display adapter hints (WEBAPP_STANDARDS Glom On — hardware awareness)."""
+    """Host GPU / display adapter hints ( hardware awareness)."""
     return list_gpus()
 
 
@@ -262,11 +274,11 @@ class ChatCompletionRequest(BaseModel):
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     skills_mode: Literal["off", "index"] = Field(
         default="index",
-        description="OpenClaw-style: inject compact skill index into system prompt (chat only).",
+        description="OpenClaw-style: inject skill index into system prompt (chat).",
     )
     skill_ids: list[str] = Field(
         default_factory=list,
-        description="Optional full SKILL.md injection for these ids (order preserved).",
+        description="Optional full SKILL.md injection for these ids.",
         max_length=8,
     )
 
@@ -275,6 +287,11 @@ class RunRequest(BaseModel):
     prompt: str = Field(..., min_length=1, description="Task text for the OpenManus agent")
     entry_point: str = Field(default="main.py", description="main.py or run_flow.py")
     timeout_s: float | None = Field(default=None, description="Override runner timeout")
+    skill_ids: list[str] = Field(
+        default_factory=list,
+        description="Optional SKILL.md playbooks prepended to prompt.",
+        max_length=8,
+    )
 
 
 class RunAsyncRequest(RunRequest):
@@ -319,15 +336,19 @@ async def chat_completions(body: ChatCompletionRequest) -> dict[str, Any]:
     intent = body.intent
     sys_msg = persona_system_prompt(body.persona, intent=intent)
 
-    layers = assemble_chat_system_layers(
+    config = SkillConfig(
+        extra_dirs_semicolon=settings.skills_extra_dirs,
+        max_skill_inject_chars=settings.max_skill_inject_chars,
+    )
+
+    ctx = ChatContext(
         persona_system=sys_msg,
         intent=intent,
         skills_mode=body.skills_mode,
         skill_ids=body.skill_ids,
         page_context=body.page_context,
-        extra_dirs_semicolon=settings.skills_extra_dirs,
-        max_skill_inject_chars=settings.max_skill_inject_chars,
     )
+    layers = assemble_chat_system_layers(ctx=ctx, config=config)
     oai_messages: list[dict[str, str]] = list(layers)
     for m in body.messages:
         oai_messages.append({"role": m.role, "content": m.content})
@@ -416,6 +437,7 @@ async def status() -> dict[str, Any]:
         "openmanus_valid": bool(info and info.looks_valid),
         "runner_timeout_s": settings.runner_timeout_s,
         "job_store_max_completed": settings.job_store_max_completed,
+        "job_store_path": str(settings.job_store_path),
         "async_jobs_stored": api_job_store().stored_count(),
         "async_jobs_pending": api_job_store().pending_count(),
         "adaptive_run_cap": lim.cap,
@@ -453,12 +475,23 @@ async def run_sync(body: RunRequest) -> RunResponse:
             success=False,
             message="OPENMANUS_ROOT is not set or invalid. Set OPENMANUS_ROOT and restart.",
         )
+
+    config = SkillConfig(
+        extra_dirs_semicolon=settings.skills_extra_dirs,
+        max_skill_inject_chars=settings.max_skill_inject_chars,
+    )
+
     ep: EntryPoint = "run_flow.py" if body.entry_point == "run_flow.py" else "main.py"
     t_out = body.timeout_s if body.timeout_s is not None else settings.runner_timeout_s
+    final_prompt = prepend_skills_to_run_prompt(
+        body.prompt,
+        body.skill_ids,
+        config=config,
+    )
     lim = api_run_limiter()
     await lim.acquire()
     try:
-        result = await _run_prompt(info.root, body.prompt, ep, t_out)
+        result = await _run_prompt(info.root, final_prompt, ep, t_out)
     finally:
         await lim.release()
     return RunResponse(
@@ -479,8 +512,19 @@ async def run_async(body: RunAsyncRequest) -> RunAsyncResponse:
             message="OPENMANUS_ROOT is not set or invalid",
             job_id="",
         )
+
+    config = SkillConfig(
+        extra_dirs_semicolon=settings.skills_extra_dirs,
+        max_skill_inject_chars=settings.max_skill_inject_chars,
+    )
+
     ep: EntryPoint = "run_flow.py" if body.entry_point == "run_flow.py" else "main.py"
     t_out = body.timeout_s if body.timeout_s is not None else settings.runner_timeout_s
+    final_prompt = prepend_skills_to_run_prompt(
+        body.prompt,
+        body.skill_ids,
+        config=config,
+    )
     jid = str(uuid.uuid4())
     store = api_job_store()
     store.set_pending(jid)
@@ -489,7 +533,7 @@ async def run_async(body: RunAsyncRequest) -> RunAsyncResponse:
         lim = api_run_limiter()
         await lim.acquire()
         try:
-            r = await _run_prompt(info.root, body.prompt, ep, t_out)
+            r = await _run_prompt(info.root, final_prompt, ep, t_out)
             store.set_result(job_id, r)
         finally:
             await lim.release()
@@ -499,14 +543,18 @@ async def run_async(body: RunAsyncRequest) -> RunAsyncResponse:
 
 
 @app.get("/api/v1/run/jobs/{job_id}", response_model=JobStatusResponse)
-async def job_status(job_id: str) -> JobStatusResponse:
+async def job_status_api(job_id: str) -> JobStatusResponse:
     """Poll an async run job."""
     val = api_job_store().get(job_id)
     if val is None:
         return JobStatusResponse(success=False, status="not_found", job_id=job_id)
     if val == "pending":
         return JobStatusResponse(success=True, status="pending", job_id=job_id)
-    assert isinstance(val, RunResult)
+
+    # S101 fix: use if instead of assert
+    if not isinstance(val, RunResult):
+        return JobStatusResponse(success=False, status="invalid_data", job_id=job_id)
+
     return JobStatusResponse(
         success=True,
         status="complete",

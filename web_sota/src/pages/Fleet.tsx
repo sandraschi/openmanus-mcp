@@ -1,8 +1,10 @@
-import { CheckCircle2, ExternalLink, Loader2, Package, Rocket, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Package, PlaySquare, RefreshCcw, Rocket, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -122,94 +124,114 @@ export default function FleetPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <header>
-        <div className="mb-2 flex items-center gap-2">
-          <Rocket className="h-7 w-7 text-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight">Fleet onboarding</h1>
+    <div className="mx-auto max-w-5xl space-y-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="mb-1 flex items-center gap-2">
+            <Rocket className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold tracking-tight">Fleet Onboarding</h1>
+          </div>
+          <p className="max-w-2xl text-muted-foreground">
+            Curated MCP repository catalog. <strong>Onboard</strong> clones into your local fleet root 
+            and prepares the environment automatically.
+          </p>
         </div>
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          Curated MCP repos. <strong>Onboard</strong> clones into <code className="rounded bg-muted px-1 text-xs">fleet/</code> (or{" "}
-          <code className="rounded bg-muted px-1 text-xs">OPENMANUS_FLEET_ROOT</code>) and runs install steps.
-        </p>
+        <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
+          <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+          Refresh Catalog
+        </Button>
       </header>
 
       {error ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm">
-          {error}
-          <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
-            Retry
-          </Button>
-        </div>
+        <Alert variant="destructive" className="bg-destructive/10">
+          <XCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription className="flex items-center gap-4">
+            {error}
+            <Button variant="outline" size="sm" onClick={() => void load()}>Retry</Button>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {loading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-28 w-full" />
-          <Skeleton className="h-28 w-full" />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-40 w-full rounded-xl" />
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="grid gap-6 sm:grid-cols-2">
           {members.map((m) => (
-            <Card key={m.id} className="border-border/80 bg-card/70 backdrop-blur-xl transition-colors hover:border-border">
-              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:justify-between">
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Package className="h-4 w-4 shrink-0 text-primary" />
-                    <span className="font-semibold">{m.name}</span>
-                    <span className="text-xs text-muted-foreground">{m.category}</span>
+            <Card key={m.id} className="group relative overflow-hidden border-border/60 bg-card/60 backdrop-blur-xl transition-all hover:border-primary/40 hover:shadow-lg">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Package className="h-6 w-6" />
                   </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{m.description}</p>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant={m.onboarded ? "default" : "secondary"} className={m.onboarded ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20" : ""}>
+                      {m.onboarded ? "ONBOARDED" : "AVAILABLE"}
+                    </Badge>
+                    {m.category && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{m.category}</span>
+                    )}
+                  </div>
+                </div>
+                <CardTitle className="mt-4 text-xl">{m.name}</CardTitle>
+                <CardDescription className="line-clamp-2 min-h-[2.5rem] leading-relaxed">
+                  {m.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
                   <a
                     href={`https://github.com/${m.github_repo}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 hover:underline"
+                    className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
                   >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    {m.github_repo}
+                    <ExternalLink className="h-3 w-3" />
+                    GitHub Source
                   </a>
-                  {m.onboarded && m.clone_path ? (
-                    <div className="font-mono text-xs text-muted-foreground">
-                      Clone: <span className="text-foreground/90">{m.clone_path}</span>
-                    </div>
-                  ) : null}
                 </div>
-                <div className="flex shrink-0 flex-col gap-2 sm:w-44">
+
+                <div className="flex gap-2">
                   <Button
-                    type="button"
+                    size="sm"
                     disabled={busyId !== null}
                     variant={m.onboarded && m.install_ok ? "outline" : "default"}
-                    className={cn("w-full", m.onboarded && m.install_ok && "border-primary text-primary")}
+                    className={cn("flex-1", m.onboarded && m.install_ok && "border-primary/50 text-primary hover:bg-primary/5")}
                     onClick={() => void onboardOne(m.id)}
                   >
                     {busyId === m.id ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Working…
-                      </span>
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Working...
+                      </>
                     ) : m.onboarded && m.install_ok ? (
-                      "Re-run onboard"
-                    ) : m.onboarded && m.install_ok === false ? (
-                      "Retry install"
+                      "Update"
                     ) : (
                       "Onboard"
                     )}
                   </Button>
-                  {m.webapp ? (
+                  
+                  {m.webapp && (
                     <Button
-                      type="button"
+                      size="sm"
                       variant="secondary"
                       disabled={busyId !== null || !m.onboarded || !m.install_ok}
-                      className="w-full"
+                      className="px-3"
                       onClick={() => void startWebapp(m.id)}
+                      title="Start Webapp"
                     >
-                      Start webapp
+                      <PlaySquare className="h-4 w-4" />
                     </Button>
-                  ) : (
-                    <span className="text-center text-[11px] text-muted-foreground">No webapp in catalog</span>
                   )}
                 </div>
               </CardContent>
+              {/* Subtle accent hover effect */}
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5 blur-3xl transition-colors group-hover:bg-primary/10" />
             </Card>
           ))}
         </div>

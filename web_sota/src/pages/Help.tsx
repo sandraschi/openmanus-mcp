@@ -90,7 +90,7 @@ export default function HelpPage() {
             <a
               href="https://lmstudio.ai/docs/app/api/endpoints/openai"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
             >
               LM Studio API docs <ExternalLink className="h-3.5 w-3.5" />
@@ -98,12 +98,42 @@ export default function HelpPage() {
             <a
               href="https://lmstudio.ai"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
             >
               Download LM Studio <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Fleet Ecosystem</CardTitle>
+          <CardDescription>Architectural boundaries and positioning</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm text-muted-foreground">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <span className="font-semibold text-foreground">Manus</span>
+              <p className="leading-relaxed">Commercial SaaS standard. High stability, managed cloud agents.</p>
+            </div>
+            <div className="space-y-1">
+              <span className="font-semibold text-foreground">OpenManus</span>
+              <p className="leading-relaxed">FOSS Bridge (this app). Managed local/community implementation.</p>
+            </div>
+            <div className="space-y-1">
+              <span className="font-semibold text-foreground">OpenClaw</span>
+              <p className="leading-relaxed">Local-First Runtime. Industrial privacy and workstation automation.</p>
+            </div>
+            <div className="space-y-1">
+              <span className="font-semibold text-foreground">Robofang</span>
+              <p className="leading-relaxed">Industrial Hardware substrate. Orchestrating Unitree/Go2 robotics.</p>
+            </div>
+          </div>
+          <p className="border-t border-border/40 pt-3 italic">
+            See <code className="rounded bg-muted px-1">docs/ECOSYSTEM.md</code> for the full technical breakdown.
+          </p>
         </CardContent>
       </Card>
 
@@ -116,6 +146,7 @@ export default function HelpPage() {
           <div className="space-y-2">
             <Label htmlFor="doc-select">Document</Label>
             <select
+              title="Select a documentation file"
               id="doc-select"
               value={doc}
               onChange={(e) => setDoc(e.target.value)}

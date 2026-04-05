@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from openmanus_mcp.runner import RunResult, _truncate, run_prompt
+from openmanus_mcp.server import openmanus_bridge
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -176,8 +177,6 @@ sys.exit(0)
 @pytest.mark.asyncio
 async def test_bridge_run_prompt_no_root() -> None:
     """run_prompt without OPENMANUS_ROOT returns config error, not a crash."""
-    from openmanus_mcp.server import openmanus_bridge
-
     r = await openmanus_bridge("run_prompt", prompt="test")
     assert r["success"] is False
     assert "configuration" in r.get("error_type", "")
@@ -185,8 +184,6 @@ async def test_bridge_run_prompt_no_root() -> None:
 
 @pytest.mark.asyncio
 async def test_bridge_run_prompt_empty_prompt() -> None:
-    from openmanus_mcp.server import openmanus_bridge
-
     r = await openmanus_bridge("run_prompt", prompt="")
     assert r["success"] is False
     assert r["error_type"] == "invalid_argument"
@@ -194,16 +191,12 @@ async def test_bridge_run_prompt_empty_prompt() -> None:
 
 @pytest.mark.asyncio
 async def test_bridge_run_prompt_async_no_root() -> None:
-    from openmanus_mcp.server import openmanus_bridge
-
     r = await openmanus_bridge("run_prompt_async", prompt="test")
     assert r["success"] is False
 
 
 @pytest.mark.asyncio
 async def test_bridge_job_status_unknown() -> None:
-    from openmanus_mcp.server import openmanus_bridge
-
     r = await openmanus_bridge("job_status", job_id="does-not-exist-xyz")
     assert r["success"] is False
     assert r["error_type"] == "not_found"
@@ -211,8 +204,6 @@ async def test_bridge_job_status_unknown() -> None:
 
 @pytest.mark.asyncio
 async def test_bridge_job_status_missing_id() -> None:
-    from openmanus_mcp.server import openmanus_bridge
-
     r = await openmanus_bridge("job_status")
     assert r["success"] is False
     assert r["error_type"] == "invalid_argument"

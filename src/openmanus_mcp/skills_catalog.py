@@ -20,8 +20,8 @@ _FM_BLOCK = re.compile(r"\A---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)\Z", re.DOTALL)
 
 def _parse_fm_lines(block: str) -> dict[str, str]:
     meta: dict[str, str] = {}
-    for line in block.splitlines():
-        line = line.strip()
+    for raw_line in block.splitlines():
+        line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
         if ":" not in line:
@@ -69,6 +69,14 @@ class SkillMeta:
         }
 
 
+@dataclass(frozen=True)
+class SkillConfig:
+    """Grouped parameters for skill discovery and injection."""
+
+    extra_dirs_semicolon: str
+    max_skill_inject_chars: int
+
+
 def bundled_skills_root() -> Path:
     """Shipped skills next to this package (``openmanus_mcp/skills/``)."""
     return Path(__file__).resolve().parent / "skills"
@@ -96,10 +104,10 @@ def discover_skills(*, extra_dirs_semicolon: str) -> list[SkillMeta]:
     seen_ids: set[str] = set()
     out: list[SkillMeta] = []
 
-    for source, root in roots:
-        if not root.is_dir():
+    for source, root_path in roots:
+        if not root_path.is_dir():
             continue
-        for path in sorted(root.rglob("SKILL.md")):
+        for path in sorted(root_path.rglob("SKILL.md")):
             if not path.is_file():
                 continue
             try:
@@ -112,10 +120,10 @@ def discover_skills(*, extra_dirs_semicolon: str) -> list[SkillMeta]:
             sid = _slug(name)
             if sid in seen_ids:
                 base = sid
-                n = 2
-                while f"{base}-{n}" in seen_ids:
-                    n += 1
-                sid = f"{base}-{n}"
+                count = 2
+                while f"{base}-{count}" in seen_ids:
+                    count += 1
+                sid = f"{base}-{count}"
             seen_ids.add(sid)
             out.append(
                 SkillMeta(
@@ -139,9 +147,9 @@ def format_skills_for_prompt(metas: list[SkillMeta]) -> str:
         return ""
     lines = [
         "<available_skills>",
-        "OpenClaw-style skill index (compact). Each skill's full instructions live in SKILL.md "
-        "at the given location. Do not invent playbook steps; read that file if your runtime "
-        "exposes filesystem access, or ask the host to pass this skill in skill_ids for full "
+        "OpenClaw-style skill index (compact). Each skill's full instructions live in SKILL.md ",
+        "at the given location. Do not invent playbook steps; read that file if your runtime ",
+        "exposes filesystem access, or ask the host to pass this skill in skill_ids for full ",
         "injection via the chat API.",
     ]
     for m in metas:
@@ -226,35 +234,69 @@ def format_full_skill_system_message(skill_name: str, body: str) -> str:
     return f"Full skill playbook ({skill_name}) — SKILL.md content:\n\n{body}"
 
 
-def assemble_chat_system_layers(
-    *,
-    persona_system: str,
-    intent: str,
-    skills_mode: Literal["off", "index"],
+def prepend_skills_to_run_prompt(
+    user_prompt: str,
     skill_ids: list[str],
-    page_context: str | None,
-    extra_dirs_semicolon: str,
-    max_skill_inject_chars: int,
-) -> list[dict[str, str]]:
-    """System messages in order: persona, optional skills index, optional full skills, page."""
-    out: list[dict[str, str]] = [{"role": "system", "content": persona_system}]
-
-    metas = discover_skills(extra_dirs_semicolon=extra_dirs_semicolon)
-    if intent == "chat" and skills_mode == "index" and metas:
-        idx = format_skills_for_prompt(metas)
-        if idx:
-            out.append({"role": "system", "content": idx})
-
+    *,
+    config: SkillConfig,
+) -> str:
+    """Prepend full SKILL.md blocks before the user task for OpenManus stdin / --prompt."""
     seen: set[str] = set()
-    for sid in skill_ids:
-        sid = sid.strip()
+    blocks: list[str] = []
+    for raw_sid in skill_ids:
+        sid = raw_sid.strip()
         if not sid or sid in seen:
             continue
         seen.add(sid)
         loaded = read_skill_body(
             sid,
-            extra_dirs_semicolon=extra_dirs_semicolon,
-            max_chars=max_skill_inject_chars,
+            extra_dirs_semicolon=config.extra_dirs_semicolon,
+            max_chars=config.max_skill_inject_chars,
+        )
+        if loaded is None:
+            continue
+        name, body = loaded
+        blocks.append(format_full_skill_system_message(name, body))
+    if not blocks:
+        return user_prompt
+    joined = "\n\n".join(blocks)
+    return f"{joined}\n\n---\n\nTask / user instructions:\n\n{user_prompt}"
+
+
+@dataclass(frozen=True)
+class ChatContext:
+    """Consolidated context for chat layer assembly."""
+
+    persona_system: str
+    intent: str
+    skills_mode: Literal["off", "index"]
+    skill_ids: list[str]
+    page_context: str | None
+
+
+def assemble_chat_system_layers(
+    ctx: ChatContext,
+    config: SkillConfig,
+) -> list[dict[str, str]]:
+    """System messages in order: persona, optional skills index, optional full skills, page."""
+    out: list[dict[str, str]] = [{"role": "system", "content": ctx.persona_system}]
+
+    metas = discover_skills(extra_dirs_semicolon=config.extra_dirs_semicolon)
+    if ctx.intent == "chat" and ctx.skills_mode == "index" and metas:
+        idx = format_skills_for_prompt(metas)
+        if idx:
+            out.append({"role": "system", "content": idx})
+
+    seen: set[str] = set()
+    for raw_sid in ctx.skill_ids:
+        sid = raw_sid.strip()
+        if not sid or sid in seen:
+            continue
+        seen.add(sid)
+        loaded = read_skill_body(
+            sid,
+            extra_dirs_semicolon=config.extra_dirs_semicolon,
+            max_chars=config.max_skill_inject_chars,
         )
         if loaded is None:
             continue
@@ -266,11 +308,11 @@ def assemble_chat_system_layers(
             }
         )
 
-    if page_context:
+    if ctx.page_context:
         out.append(
             {
                 "role": "system",
-                "content": f"Client route / UI context:\n{page_context}",
+                "content": f"Client route / UI context:\n{ctx.page_context}",
             }
         )
     return out

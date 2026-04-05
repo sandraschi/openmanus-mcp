@@ -4,18 +4,20 @@
 
 A **meta** guide: how **openmanus-mcp** (and sibling **sandraschi** MCP + webapp repos) tend to get built—not a mandate, a pattern.
 
-## 1. The basics
+## 1. Vibecoding — *agentic engineering* (Karpathy, and why “vibeCODING” is a museum piece)
+
+**Vibe coding** and **agentic engineering** (orchestrating agents instead of typing every layer) are associated with **Andrej Karpathy**’s public framing—people often say “Alex Karpathy” casually; same person.
+
+**Natural-language steering** of codebases (“do the thing, here’s the constraint”) only became **reliably useful for real shipping work** in roughly the **last ~four months** (late 2025 → early 2026): longer context, better tool use, and **agentic** loops that don’t lose the plot on the third file.
+
+**vibeCODING** in the old sense—*you* as the one who **writes, reads, debugs, tests, and documents** most of the surface area—is **outdated**. A lot of **vibecoders** no longer live in that loop; the agent is the default **editor, runner, and drafter** of tests and docs, while the human **steers intent, constraints, and merge gates**. **That ship has sailed.** You still own **architecture, safety, product calls, and zeropaid** tradeoffs (below)—but not the pretense that you’re the primary typist on every layer.
+
+## 2. The basics
 
 - **Small, shippable repo:** FastMCP **stdio** server + **FastAPI** + **Vite/React** dashboard on **registered ports** (see [TECH.md](TECH.md), [WEBAPP_PORTS](https://github.com/sandraschi/mcp-central-docs/blob/main/operations/WEBAPP_PORTS.md)).
 - **`uv` + Ruff + pytest + CI** so first clone isn’t archaeology.
 - **`glama.json`** + docs so Glama/registry and humans can find the thing.
 - **Fleet hook:** optional onboarding of other repos under `fleet/` ([FLEET.md](FLEET.md)) or a **new repo** in the constellation ([FLEET_CONTEXT.md](FLEET_CONTEXT.md)).
-
-## 2. Vibecoding — or *agentic architecting*
-
-**Natural-language steering** of codebases (“do the thing, here’s the constraint”) only became **reliably useful for real shipping work** in roughly the **last ~four months** (late 2025 → early 2026): longer context, better tool use, and **agentic** loops that don’t lose the plot on the third file.
-
-That’s **vibecoding** in the cheap seats; call it **agentic architecting** if you want a tie. Same idea: you **describe intent and invariants**, the IDE agent **edits, tests, and refactors**, you **gate** merges. It’s not magic—**you** still own architecture, safety, and “zeropaid” choices (below).
 
 ## 3. Agentic IDEs
 

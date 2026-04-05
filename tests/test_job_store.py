@@ -19,8 +19,9 @@ def _ok_result(prompt: str = "x") -> RunResult:
     )
 
 
-def test_evict_oldest_completed() -> None:
-    store = JobStore(max_completed=3)
+def test_evict_oldest_completed(tmp_path: object) -> None:
+    f = tmp_path / "jobs.json"
+    store = JobStore(file_path=str(f), max_completed=3)
     for i in range(5):
         jid = f"j{i}"
         store.set_pending(jid)
@@ -34,11 +35,13 @@ def test_evict_oldest_completed() -> None:
     assert store.get("j4") is not None
 
 
-def test_pending_not_evicted_by_fifo() -> None:
-    store = JobStore(max_completed=1)
+def test_pending_not_evicted_by_fifo(tmp_path: object) -> None:
+    f = tmp_path / "jobs_fifo.json"
+    store = JobStore(file_path=str(f), max_completed=1)
     store.set_pending("a")
     store.set_pending("b")
     store.set_result("a", _ok_result())
     store.set_result("b", _ok_result())
     # Two completed — max 1 — one evicted
     assert store.stored_count() == 1
+

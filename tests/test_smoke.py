@@ -19,7 +19,8 @@ async def test_bridge_status() -> None:
     assert "runner_timeout_s" in r["result"]
     assert "async_jobs_pending" in r["result"]
     assert "async_jobs_stored" in r["result"]
-    assert "job_store_max_completed" in r["result"]
+    assert "job_store_path" in r["result"]
+
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,29 @@
+{
+  "manifest_version": "0.2",
+  "name": "openmanus-mcp",
+  "version": "0.1.0-beta.1",
+  "description": "OpenManus Process Interface Relay (FastMCP 3.2 Coordination)",
+  "author": { "name": "Sandra Schi" },
+  "server": {
+    "type": "python",
+    "entry_point": "src/openmanus_mcp/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["-m", "openmanus_mcp.server"],
+      "env": {
+        "PYTHONPATH": "${PWD}",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "openmanus_bridge",
+      "description": "Portmanteau interface for OpenManus (status, validate, run_prompt, run_prompt_async, job_status)"
+    },
+    {
+      "name": "sampling_relay",
+      "description": "Demonstrate host LLM sampling for reasoning and task context."
+    }
+  ]
+}

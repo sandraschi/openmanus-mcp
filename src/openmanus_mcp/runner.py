@@ -20,12 +20,13 @@ Design constraints:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import re
 import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 MAX_OUTPUT_CHARS = 40_000  # total stdout+stderr cap before truncation
 _SENTINEL = object()
@@ -48,7 +49,7 @@ class RunResult:
     truncated: bool = False
     error: str | None = None
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "success": self.success,
             "entry_point": self.entry_point,
@@ -61,6 +62,10 @@ class RunResult:
             "error": self.error,
             "execution_time_ms": round(self.execution_time_ms, 2),
         }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> RunResult:
+        return cls(**data)
 
 
 def _python_for_root(openmanus_root: Path) -> str:
@@ -116,16 +121,54 @@ def _quality_gate(success: bool, stdout_text: str, stderr_text: str) -> tuple[bo
     return True, None
 
 
+async def _drain_stream(stream: asyncio.StreamReader, buf: list[str]) -> None:
+    while True:
+        line = await stream.readline()
+        if not line:
+            break
+        buf.append(line.decode("utf-8", errors="replace"))
+
+
+async def _create_process(
+    python: str, script: Path, prompt: str, openmanus_root: Path
+) -> asyncio.subprocess.Process:
+    """Create the subprocess with proper stdin handling."""
+    use_argv_prompt = script.name == "main.py" and "\n" not in prompt and "\r" not in prompt
+
+    if use_argv_prompt:
+        return await asyncio.create_subprocess_exec(
+            python,
+            str(script),
+            "--prompt",
+            prompt,
+            stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(openmanus_root),
+        )
+
+    proc = await asyncio.create_subprocess_exec(
+        python,
+        str(script),
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+        cwd=str(openmanus_root),
+    )
+    if proc.stdin:
+        proc.stdin.write((prompt + "\n").encode("utf-8", errors="replace"))
+        await proc.stdin.drain()
+        proc.stdin.close()
+    return proc
+
+
 async def run_prompt(
     openmanus_root: Path,
     prompt: str,
     entry_point: EntryPoint = "main.py",
     timeout_s: float = 300.0,
 ) -> RunResult:
-    """Run OpenManus with *prompt*; see module docstring for argv vs stdin.
-
-    stdout and stderr are read concurrently to avoid deadlock.
-    """
+    """Run OpenManus with *prompt*; see module docstring for argv vs stdin."""
     t0 = time.perf_counter()
     script = openmanus_root / entry_point
     if not script.is_file():
@@ -148,49 +191,18 @@ async def run_prompt(
     timed_out = False
     proc_error: str | None = None
 
-    use_argv_prompt = entry_point == "main.py" and "\n" not in prompt and "\r" not in prompt
-
     try:
-        if use_argv_prompt:
-            proc = await asyncio.create_subprocess_exec(
-                python,
-                str(script),
-                "--prompt",
-                prompt,
-                stdin=asyncio.subprocess.DEVNULL,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=str(openmanus_root),
-            )
-        else:
-            proc = await asyncio.create_subprocess_exec(
-                python,
-                str(script),
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=str(openmanus_root),
-            )
-            assert proc.stdin is not None
-            proc.stdin.write((prompt + "\n").encode("utf-8", errors="replace"))
-            await proc.stdin.drain()
-            proc.stdin.close()
+        proc = await _create_process(python, script, prompt, openmanus_root)
 
-        async def drain_stream(stream: asyncio.StreamReader, buf: list[str]) -> None:
-            while True:
-                line = await stream.readline()
-                if not line:
-                    break
-                buf.append(line.decode("utf-8", errors="replace"))
-
-        assert proc.stdout is not None
-        assert proc.stderr is not None
+        # S101 Fix: Use if instead of assert for stream checks
+        if proc.stdout is None or proc.stderr is None:
+            raise RuntimeError("Subprocess streams not captured")
 
         try:
             await asyncio.wait_for(
                 asyncio.gather(
-                    drain_stream(proc.stdout, stdout_lines),
-                    drain_stream(proc.stderr, stderr_lines),
+                    _drain_stream(proc.stdout, stdout_lines),
+                    _drain_stream(proc.stderr, stderr_lines),
                     proc.wait(),
                 ),
                 timeout=timeout_s,
@@ -198,11 +210,9 @@ async def run_prompt(
             exit_code = proc.returncode
         except TimeoutError:
             timed_out = True
-            try:
+            with contextlib.suppress(Exception):
                 proc.kill()
                 await proc.wait()
-            except Exception:
-                pass
             exit_code = proc.returncode
 
     except FileNotFoundError as exc:
@@ -216,7 +226,6 @@ async def run_prompt(
     truncated = False
 
     if combined_len > MAX_OUTPUT_CHARS:
-        # Allocate cap proportionally
         stdout_cap = int(MAX_OUTPUT_CHARS * len(stdout_raw) / max(combined_len, 1))
         stderr_cap = MAX_OUTPUT_CHARS - stdout_cap
         stdout_raw, t1 = _truncate(stdout_raw, stdout_cap)
@@ -225,7 +234,6 @@ async def run_prompt(
 
     elapsed_ms = (time.perf_counter() - t0) * 1000
     success = proc_error is None and not timed_out and exit_code == 0
-    quality_error: str | None = None
     success, quality_error = _quality_gate(success, stdout_raw, stderr_raw)
     if quality_error and proc_error is None:
         proc_error = quality_error

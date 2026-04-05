@@ -12,11 +12,12 @@ Staggered, linked guides for **openmanus-mcp**. Start with **[INSTALL.md](INSTAL
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | Builders | MCP + FastAPI + Vite, fleet, **supervisor**, **skills**, **connectors**, workflows, roadmap |
 | **[SUPERVISOR.md](SUPERVISOR.md)** | Automation | Interval schedules → async OpenManus runs; connector REST catalog |
 | **[SKILLS_OPENCLAW.md](SKILLS_OPENCLAW.md)** | Chat / agents | OpenClaw-style skill index + optional full `SKILL.md` injection |
+| **[WHAT_WORKS_WHERE.md](WHAT_WORKS_WHERE.md)** | Integrators | Matrix: MCP vs REST vs UI (runs, skills, supervisor, fleet) |
 | **[SAFETY.md](SAFETY.md)** | Anyone touching desktop/fleet | Risk model, composable stack, hard rules |
 | **[FLEET.md](FLEET.md)** | Windows fleet users | pywinauto-mcp, bootstrap script, REST/UI onboarding |
 | **[FLEET_CONTEXT.md](FLEET_CONTEXT.md)** | Context / vibe | sandraschi MCP fleet over months, private phase, MCP + React, OpenManus / robotics / Resonite / World Labs |
 | **[GLAMA.md](GLAMA.md)** | Registry / Glama users | `glama.json` fields and validation |
-| **[HOW_WE_BUILD.md](HOW_WE_BUILD.md)** | Process / vibe | Vibecoding, agentic IDEs, local LLMs, daily FOSS trawl, Opus-style integration pass, zeropaid, new fleet repos |
+| **[HOW_WE_BUILD.md](HOW_WE_BUILD.md)** | Process / vibe | Karpathy-era vibe coding → agentic engineering; repo basics; agentic IDEs; local LLMs; daily FOSS trawl; Opus-style integration pass; zeropaid; fleet |
 | **[REPO_HYGIENE.md](REPO_HYGIENE.md)** | Skeptics & contributors | Anti-slop signals, AI-assisted transparency, spam stance, **ORB** roadmap pointer |
 
 **Repo root:** [README.md](../README.md) (short overview + badges).

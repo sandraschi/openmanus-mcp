@@ -28,3 +28,15 @@ def test_skills_one() -> None:
 def test_skills_one_404() -> None:
     r = client.get("/api/v1/skills/does-not-exist-xyz")
     assert r.status_code == 404
+
+
+def test_run_accepts_skill_ids_without_crash() -> None:
+    """skill_ids are merged server-side; invalid OPENMANUS_ROOT still returns a clear error."""
+    r = client.post(
+        "/api/v1/run",
+        json={"prompt": "task", "skill_ids": ["mcp-builder"], "entry_point": "main.py"},
+    )
+    assert r.status_code == 200
+    d = r.json()
+    assert d["success"] is False
+    assert "OPENMANUS_ROOT" in d["message"]

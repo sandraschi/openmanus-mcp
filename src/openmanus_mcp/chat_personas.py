@@ -57,5 +57,7 @@ def persona_system_prompt(persona: str, *, intent: str) -> str:
 
 
 def list_personas_public() -> list[dict[str, Any]]:
-    """Subset safe to expose to the web client (no hidden prompt text if we want — we expose labels)."""
+    """Subset safe to expose to the web client.
+    We expose labels and descriptions to the UI.
+    """
     return [{"id": p["id"], "label": p["label"], "description": p["description"]} for p in PERSONAS]

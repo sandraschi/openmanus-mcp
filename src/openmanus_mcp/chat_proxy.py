@@ -66,7 +66,12 @@ async def completion_ollama(
     content = msg.get("content")
     if not content:
         return {"success": False, "error": "Ollama response missing message.content", "raw": data}
-    return {"success": True, "content": str(content), "raw_model": data.get("model"), "provider": "ollama"}
+    return {
+        "success": True,
+        "content": str(content),
+        "raw_model": data.get("model"),
+        "provider": "ollama",
+    }
 
 
 async def completion_lmstudio(
@@ -93,4 +98,9 @@ async def completion_lmstudio(
     content = msg.get("content")
     if not content:
         return {"success": False, "error": "LM Studio choice missing message.content", "raw": data}
-    return {"success": True, "content": str(content), "raw_model": data.get("model"), "provider": "lmstudio"}
+    return {
+        "success": True,
+        "content": str(content),
+        "raw_model": data.get("model"),
+        "provider": "lmstudio",
+    }

@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 @dataclass
-class OpenManusInstall:
+class OpenManusInfo:
     """Structured result for OpenManus path validation."""
 
     root: Path
@@ -18,12 +18,12 @@ class OpenManusInstall:
         return self.has_main_py and self.root.is_dir()
 
 
-def describe_openmanus(root: Path | None) -> OpenManusInstall | None:
+def describe_openmanus(root: Path | None) -> OpenManusInfo | None:
     """Return install info or None if root is unset."""
     if root is None:
         return None
     r = root.resolve()
-    return OpenManusInstall(
+    return OpenManusInfo(
         root=r,
         has_main_py=(r / "main.py").is_file(),
         has_config_example=(r / "config" / "config.example.toml").is_file(),

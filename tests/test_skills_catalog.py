@@ -2,11 +2,14 @@
 
 from openmanus_mcp.chat_personas import persona_system_prompt
 from openmanus_mcp.skills_catalog import (
+    ChatContext,
+    SkillConfig,
     assemble_chat_system_layers,
     discover_skills,
     estimate_skills_prompt_chars,
     format_skills_for_prompt,
     parse_skill_md,
+    prepend_skills_to_run_prompt,
 )
 
 
@@ -46,15 +49,15 @@ def test_estimate_chars_positive_with_skills() -> None:
 
 def test_assemble_chat_includes_index_by_default() -> None:
     sys_p = persona_system_prompt("reductionist", intent="chat")
-    layers = assemble_chat_system_layers(
+    ctx = ChatContext(
         persona_system=sys_p,
         intent="chat",
         skills_mode="index",
         skill_ids=[],
         page_context=None,
-        extra_dirs_semicolon="",
-        max_skill_inject_chars=24_000,
     )
+    config = SkillConfig(extra_dirs_semicolon="", max_skill_inject_chars=24_000)
+    layers = assemble_chat_system_layers(ctx=ctx, config=config)
     assert layers[0]["role"] == "system"
     c0 = layers[0]["content"].lower()
     assert "reductionist" in c0 or "technical" in c0
@@ -63,44 +66,52 @@ def test_assemble_chat_includes_index_by_default() -> None:
 
 def test_assemble_refine_skips_skill_index() -> None:
     sys_p = persona_system_prompt("reductionist", intent="refine")
-    layers = assemble_chat_system_layers(
+    ctx = ChatContext(
         persona_system=sys_p,
         intent="refine",
         skills_mode="index",
         skill_ids=[],
         page_context=None,
-        extra_dirs_semicolon="",
-        max_skill_inject_chars=24_000,
     )
+    config = SkillConfig(extra_dirs_semicolon="", max_skill_inject_chars=24_000)
+    layers = assemble_chat_system_layers(ctx=ctx, config=config)
     assert not any("<available_skills>" in x["content"] for x in layers)
 
 
 def test_assemble_off_no_index() -> None:
     sys_p = persona_system_prompt("reductionist", intent="chat")
-    layers = assemble_chat_system_layers(
+    ctx = ChatContext(
         persona_system=sys_p,
         intent="chat",
         skills_mode="off",
         skill_ids=[],
         page_context=None,
-        extra_dirs_semicolon="",
-        max_skill_inject_chars=24_000,
     )
+    config = SkillConfig(extra_dirs_semicolon="", max_skill_inject_chars=24_000)
+    layers = assemble_chat_system_layers(ctx=ctx, config=config)
     assert len(layers) == 1
     assert "<available_skills>" not in layers[0]["content"]
 
 
+def test_prepend_skills_to_run_prompt() -> None:
+    config = SkillConfig(extra_dirs_semicolon="", max_skill_inject_chars=24_000)
+    out = prepend_skills_to_run_prompt("Do the thing.", ["mcp-builder"], config=config)
+    assert "Task / user instructions:" in out
+    assert "Do the thing." in out
+    assert "mcp-builder" in out.lower() or "FastMCP" in out
+
+
 def test_assemble_skill_ids_inject_full_body() -> None:
     sys_p = persona_system_prompt("reductionist", intent="chat")
-    layers = assemble_chat_system_layers(
+    ctx = ChatContext(
         persona_system=sys_p,
         intent="chat",
         skills_mode="off",
         skill_ids=["mcp-builder"],
         page_context=None,
-        extra_dirs_semicolon="",
-        max_skill_inject_chars=24_000,
     )
+    config = SkillConfig(extra_dirs_semicolon="", max_skill_inject_chars=24_000)
+    layers = assemble_chat_system_layers(ctx=ctx, config=config)
     assert len(layers) >= 2
     joined = "\n".join(x["content"] for x in layers)
     assert "Full skill playbook" in joined

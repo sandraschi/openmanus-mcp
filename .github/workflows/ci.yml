@@ -19,14 +19,20 @@ jobs:
       - name: Sync (dev)
         run: uv sync --extra dev
 
-      - name: Ruff check
-        run: uv run ruff check src tests
-
-      - name: Ruff format
-        run: uv run ruff format --check src tests
+      - name: Pre-commit
+        run: uv run pre-commit run --all-files
 
       - name: Pytest
         run: uv run pytest
+
+      - name: Build Wheel
+        run: uv build
+
+      - name: Build MCPB (simulated)
+        run: |
+          mkdir -p dist
+          cp dist/*.whl dist/openmanus-mcp.mcpb
+
 
   web:
     runs-on: ubuntu-latest

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+import uuid
 
 from openmanus_mcp.concurrency import api_run_limiter
 from openmanus_mcp.job_store import api_job_store
@@ -12,12 +13,24 @@ from openmanus_mcp.openmanus_detect import describe_openmanus
 from openmanus_mcp.runner import EntryPoint, RunResult, run_prompt
 from openmanus_mcp.settings import get_settings
 from openmanus_mcp.supervisor.schedules import ScheduleEntry, pop_due_schedules
-from openmanus_mcp.supervisor.state import bump_schedules_fired, heartbeat_update, record_tick
+from openmanus_mcp.supervisor.state import (
+    bump_schedules_fired,
+    heartbeat_update,
+    record_tick,
+)
 
 log = logging.getLogger(__name__)
 
-_stop: asyncio.Event | None = None
-_task: asyncio.Task[None] | None = None
+
+class SupervisorState:
+    """Thread-safe container for supervisor lifecycle events."""
+
+    def __init__(self) -> None:
+        self.stop: asyncio.Event | None = None
+        self.task: asyncio.Task[None] | None = None
+
+
+_state = SupervisorState()
 
 
 async def _fire_scheduled_run(ent: ScheduleEntry) -> None:
@@ -33,8 +46,6 @@ async def _fire_scheduled_run(ent: ScheduleEntry) -> None:
     ep: EntryPoint = "run_flow.py" if ent.entry_point == "run_flow.py" else "main.py"
     prompt = ent.effective_prompt()
     t_out = settings.runner_timeout_s
-
-    import uuid
 
     jid = str(uuid.uuid4())
     store = api_job_store()
@@ -101,27 +112,25 @@ async def _tick_loop(stop: asyncio.Event) -> None:
 
 def start_supervisor() -> None:
     """Start background loop if enabled in settings (idempotent)."""
-    global _stop, _task
     settings = get_settings()
     if not settings.supervisor_enabled:
         log.info("supervisor disabled (OPENMANUS_SUPERVISOR_ENABLED=false)")
         return
-    if _task is not None and not _task.done():
+    if _state.task is not None and not _state.task.done():
         return
-    _stop = asyncio.Event()
-    _task = asyncio.create_task(_tick_loop(_stop), name="openmanus_supervisor")
+    _state.stop = asyncio.Event()
+    _state.task = asyncio.create_task(_tick_loop(_state.stop), name="openmanus_supervisor")
     log.info("supervisor started tick_s=%s", settings.supervisor_tick_s)
 
 
 async def stop_supervisor() -> None:
     """Signal worker to stop and await task (best-effort)."""
-    global _stop, _task
-    if _stop is not None:
-        _stop.set()
-    if _task is not None:
+    if _state.stop is not None:
+        _state.stop.set()
+    if _state.task is not None:
         try:
-            await asyncio.wait_for(_task, timeout=5.0)
+            await asyncio.wait_for(_state.task, timeout=5.0)
         except TimeoutError:
-            _task.cancel()
-        _task = None
-    _stop = None
+            _state.task.cancel()
+        _state.task = None
+    _state.stop = None

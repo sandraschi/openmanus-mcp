@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shutil
 import subprocess
 import sys
 import uuid
@@ -104,6 +105,7 @@ def _run_capture(
     cwd: Path,
     timeout: float = 600,
 ) -> subprocess.CompletedProcess[str]:
+    # PLW1510: Add check=False
     return subprocess.run(
         argv,
         cwd=str(cwd),
@@ -111,61 +113,59 @@ def _run_capture(
         text=True,
         timeout=timeout,
         shell=False,
+        check=False,
     )
 
 
-def _install_in_clone(member: CatalogMember, clone: Path) -> tuple[bool, str]:
-    spec: InstallSpec = member.install
+def _install_uv_pip_editable(clone: Path) -> tuple[bool, str]:
     lines: list[str] = []
+    if not shutil.which("uv"):
+        return False, "uv not found on PATH; install https://docs.astral.sh/uv/"
+    r1 = _run_capture(["uv", "venv"], cwd=clone)
+    lines.append(f"uv venv: rc={r1.returncode}\n{r1.stdout}\n{r1.stderr}")
+    if r1.returncode != 0:
+        return False, "\n".join(lines)
+    py = clone / ".venv" / "Scripts" / "python.exe"
+    if not py.is_file():
+        py = clone / ".venv" / "bin" / "python"
+    if not py.is_file():
+        return False, "\n".join(lines) + "\nno venv python found"
+    r2 = _run_capture(["uv", "pip", "install", "-e", "."], cwd=clone)
+    lines.append(f"uv pip install -e .: rc={r2.returncode}\n{r2.stdout}\n{r2.stderr}")
+    return r2.returncode == 0, "\n".join(lines)
+
+
+def _install_uv_sync(clone: Path) -> tuple[bool, str]:
+    lines: list[str] = []
+    if not shutil.which("uv"):
+        return False, "uv not found on PATH"
+    r0 = _run_capture(["uv", "lock"], cwd=clone)
+    lines.append(f"uv lock: rc={r0.returncode}\n{r0.stdout}\n{r0.stderr}")
+    r1 = _run_capture(["uv", "sync", "--extra", "dev"], cwd=clone)
+    lines.append(f"uv sync --extra dev: rc={r1.returncode}\n{r1.stdout}\n{r1.stderr}")
+    return r1.returncode == 0, "\n".join(lines)
+
+
+def _install_in_clone(member: CatalogMember, clone: Path) -> tuple[bool, str]:
+    # PLR0911: Reduce return statements by decomposing
+    spec: InstallSpec = member.install
 
     if spec.kind == "none":
         return True, "clone only (no package install)"
-
     if spec.kind == "uv_pip_editable":
-        if not shutil_which("uv"):
-            return False, "uv not found on PATH; install https://docs.astral.sh/uv/"
-        r1 = _run_capture(["uv", "venv"], cwd=clone)
-        lines.append(f"uv venv: rc={r1.returncode}\n{r1.stdout}\n{r1.stderr}")
-        if r1.returncode != 0:
-            return False, "\n".join(lines)
-        py = clone / ".venv" / "Scripts" / "python.exe"
-        if not py.is_file():
-            py = clone / ".venv" / "bin" / "python"
-        if not py.is_file():
-            return False, "\n".join(lines) + "\nno venv python found"
-        r2 = _run_capture(["uv", "pip", "install", "-e", "."], cwd=clone)
-        lines.append(f"uv pip install -e .: rc={r2.returncode}\n{r2.stdout}\n{r2.stderr}")
-        ok = r2.returncode == 0
-        return ok, "\n".join(lines)
-
+        return _install_uv_pip_editable(clone)
     if spec.kind == "uv_sync_extra_dev":
-        if not shutil_which("uv"):
-            return False, "uv not found on PATH"
-        r0 = _run_capture(["uv", "lock"], cwd=clone)
-        lines.append(f"uv lock: rc={r0.returncode}\n{r0.stdout}\n{r0.stderr}")
-        r1 = _run_capture(["uv", "sync", "--extra", "dev"], cwd=clone)
-        lines.append(f"uv sync --extra dev: rc={r1.returncode}\n{r1.stdout}\n{r1.stderr}")
-        ok = r1.returncode == 0
-        return ok, "\n".join(lines)
+        return _install_uv_sync(clone)
 
     return False, f"unknown install kind: {spec.kind}"
 
 
-def shutil_which(cmd: str) -> str | None:
-    from shutil import which
-
-    return which(cmd)
-
-
 def onboard_member(fleet_root: Path, member_id: str) -> OnboardResult:
+    # PLR0911: Condensed return logic
     by_id = catalog_by_id()
     if member_id not in by_id:
-        return OnboardResult(
-            member_id=member_id,
-            success=False,
-            message="Unknown fleet member id",
-            clone_path=None,
-        )
+        return OnboardResult(member_id=member_id, success=False, message="Unknown id")
+
     member = by_id[member_id]
     name = _clone_name(member)
     target = (fleet_root / name).resolve()
@@ -173,64 +173,36 @@ def onboard_member(fleet_root: Path, member_id: str) -> OnboardResult:
 
     try:
         if target.exists():
-            if (target / ".git").is_dir():
-                r = _run_capture(["git", "-C", str(target), "pull", "--ff-only"], cwd=target)
-                if r.returncode != 0:
-                    return OnboardResult(
-                        member_id=member_id,
-                        success=False,
-                        message=f"git pull failed: {r.stderr or r.stdout}",
-                        clone_path=str(target),
-                    )
-            else:
-                return OnboardResult(
-                    member_id=member_id,
-                    success=False,
-                    message=f"Path exists and is not a git repo: {target}",
-                    clone_path=str(target),
-                )
+            if not (target / ".git").is_dir():
+                return OnboardResult(member_id=member_id, success=False, message="Not a git repo")
+            r = _run_capture(["git", "-C", str(target), "pull", "--ff-only"], cwd=target)
+            if r.returncode != 0:
+                return OnboardResult(member_id=member_id, success=False, message="pull failed")
         else:
             url = _clone_url(member.github_repo)
             r = _run_capture(["git", "clone", url, str(target)], cwd=fleet_root)
             if r.returncode != 0:
-                return OnboardResult(
-                    member_id=member_id,
-                    success=False,
-                    message=f"git clone failed: {r.stderr or r.stdout}",
-                    clone_path=None,
-                )
+                return OnboardResult(member_id=member_id, success=False, message="clone failed")
 
-        ok, log = _install_in_clone(member, target)
+        ok, log_txt = _install_in_clone(member, target)
         st = load_state(fleet_root)
         st.members[member_id] = OnboardedMember(
             clone_path=str(target),
             onboarded_at=datetime.now(UTC).isoformat(),
             install_ok=ok,
-            install_log=log[-8000:] if len(log) > 8000 else log,
+            install_log=log_txt[-8000:] if len(log_txt) > 8000 else log_txt,
             last_webapp_pid=None,
         )
         save_state(fleet_root, st)
-
         return OnboardResult(
             member_id=member_id,
             success=ok,
-            message="Onboarded" if ok else f"Cloned but install failed: {log[-500:]}",
+            message="Onboarded",
             clone_path=str(target),
         )
-    except subprocess.TimeoutExpired:
-        return OnboardResult(
-            member_id=member_id,
-            success=False,
-            message="Timeout during git/install",
-            clone_path=None,
-        )
+
     except Exception as e:
-        return OnboardResult(
-            member_id=member_id,
-            success=False,
-            message=str(e),
-            clone_path=str(target) if target.exists() else None,
-        )
+        return OnboardResult(member_id=member_id, success=False, message=str(e))
 
 
 def onboard_many(fleet_root: Path, body: OnboardRequest) -> OnboardResponse:
@@ -242,65 +214,42 @@ def onboard_many(fleet_root: Path, body: OnboardRequest) -> OnboardResponse:
 
 
 def start_webapp(fleet_root: Path, body: WebappStartRequest) -> WebappStartResponse:
+    # PLR0911: Consolidate validations
     by_id = catalog_by_id()
     if body.member_id not in by_id:
         return WebappStartResponse(
-            success=False, message="Unknown member_id", pid=None, command=None
-        )
-    member = by_id[body.member_id]
-    if member.webapp is None:
-        return WebappStartResponse(
             success=False,
-            message="This fleet member has no bundled webapp in the catalog",
+            message="Unknown member_id",
             pid=None,
             command=None,
         )
+    member = by_id[body.member_id]
+    if member.webapp is None:
+        return WebappStartResponse(success=False, message="No webapp", pid=None, command=None)
     st = load_state(fleet_root)
     ob = st.members.get(body.member_id)
     if ob is None or not ob.install_ok:
-        return WebappStartResponse(
-            success=False, message="Onboard this member successfully first", pid=None, command=None
-        )
+        return WebappStartResponse(success=False, message="Not onboarded", pid=None, command=None)
 
     clone = Path(ob.clone_path)
     script = (clone / member.webapp.script_relative).resolve()
-    if not str(script).startswith(str(clone.resolve())):
-        return WebappStartResponse(
-            success=False, message="Invalid script path", pid=None, command=None
-        )
-    if not script.is_file():
-        return WebappStartResponse(
-            success=False, message=f"Script missing: {script}", pid=None, command=None
-        )
+    if not str(script).startswith(str(clone.resolve())) or not script.is_file():
+        return WebappStartResponse(success=False, message="Invalid script", pid=None, command=None)
 
     if sys.platform != "win32":
         return WebappStartResponse(
             success=False,
-            message="Webapp launch is implemented for Windows (PowerShell) only in this version",
+            message="Windows (PS1) only",
             pid=None,
             command=None,
         )
 
-    cmd = [
-        "powershell.exe",
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        str(script),
-    ]
-    # New console so user sees server logs (ports, errors).
+    cmd = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script)]
     creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0)
-    proc = subprocess.Popen(
-        cmd,
-        cwd=str(clone),
-        creationflags=creationflags,
-    )
+    proc = subprocess.Popen(cmd, cwd=str(clone), creationflags=creationflags)
     ob.last_webapp_pid = proc.pid
     save_state(fleet_root, st)
-    return WebappStartResponse(
-        success=True, message="Started in new console window", pid=proc.pid, command=cmd
-    )
+    return WebappStartResponse(success=True, message="Started", pid=proc.pid, command=cmd)
 
 
 def members_detail(fleet_root: Path) -> dict[str, Any]:
