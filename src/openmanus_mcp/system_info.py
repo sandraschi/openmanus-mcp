@@ -115,3 +115,11 @@ def list_gpus() -> dict[str, Any]:
         "gpus": gpus,
         "suggest_local_llm": suggest_local_llm,
     }
+def main() -> None:
+    import json
+    res = list_gpus()
+    print(json.dumps(res, indent=2))
+
+
+if __name__ == "__main__":
+    main()

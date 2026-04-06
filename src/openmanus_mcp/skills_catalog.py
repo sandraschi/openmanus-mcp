@@ -316,3 +316,16 @@ def assemble_chat_system_layers(
             }
         )
     return out
+def main() -> None:
+    from openmanus_mcp.settings import get_settings
+
+    settings = get_settings()
+    skills = discover_skills(extra_dirs_semicolon=settings.extra_skill_dirs)
+    print(f"{'ID':<25} {'Source':<10} {'Name':<30} {'Description'}")
+    print("-" * 100)
+    for s in skills:
+        print(f"{s.skill_id:<25} {s.source:<10} {s.name:<30} {s.description}")
+
+
+if __name__ == "__main__":
+    main()

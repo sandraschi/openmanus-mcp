@@ -123,3 +123,14 @@ def dry_run_openmanus_bridge(
         },
         "execution_time_ms": round((time.perf_counter() - t0) * 1000, 2),
     }
+def main() -> None:
+    import json
+    import sys
+
+    op = sys.argv[1] if len(sys.argv) > 1 else "validate"
+    res = dry_run_openmanus_bridge(op)
+    print(json.dumps(res, indent=2))
+
+
+if __name__ == "__main__":
+    main()

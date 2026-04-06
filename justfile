@@ -5,7 +5,7 @@ set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 # Display the SOTA Industrial Dashboard
 default:
     @$lines = Get-Content '{{justfile()}}'; \
-    Write-Host ' [SOTA] Industrial Operations Dashboard v1.3.2' -ForegroundColor White -BackgroundColor Cyan; \
+    Write-Host ' [SOTA] Industrial Operations Dashboard v1.3.3' -ForegroundColor White -BackgroundColor Cyan; \
     Write-Host '' ; \
     $currentCategory = ''; \
     foreach ($line in $lines) { \
@@ -27,75 +27,93 @@ default:
             } \
         } \
     } \
-    Write-Host "`n  [System State: PROD/HARDENED]" -ForegroundColor DarkGray; \
+    Write-Host "`n  [System State: PROD/INDUSTRIAL]" -ForegroundColor DarkGray; \
     Write-Host ''
 
 # ── Quality ───────────────────────────────────────────────────────────────────
 
-# Execute Ruff SOTA v13.1 linting
+# Execute Ruff linting
 lint:
-    Set-Location '{{justfile_directory()}}'
     uv run ruff check .
 
-# Execute Ruff SOTA v13.1 fix and formatting
+# Execute Ruff fix and formatting
 fix:
-    Set-Location '{{justfile_directory()}}'
     uv run ruff check . --fix --unsafe-fixes
     uv run ruff format .
+
+# Python dev env sync
+install:
+    uv sync --extra dev
+
+# Execute unit and integration tests
+test:
+    uv run pytest
 
 # ── Hardening ─────────────────────────────────────────────────────────────────
 
 # Execute Bandit security audit
 check-sec:
-    Set-Location '{{justfile_directory()}}'
     uv run bandit -r src/
 
-# Execute safety audit of dependencies
+# Execute dependency safety audit
 audit-deps:
-    Set-Location '{{justfile_directory()}}'
     uv run safety check
 
-# openmanus-mcp — https://github.com/casey/just
-# Install: https://just.systems/  (Windows: scoop install just  |  choco install just)
-# Uses uv; web build needs Node/npm in PATH.
+# Validate glama.json integrity
+check-glama:
+    uv run python -c "import json, pathlib; json.load(pathlib.Path('glama.json').open(encoding='utf-8')); print('glama.json: OK')"
 
-stats:
-    uv run python tools/repo_stats.py
+# ── Fleet ─────────────────────────────────────────────────────────────────────
 
-# Default: MCP stdio (Cursor, Glama, etc.)
-# MCP server over stdio
-run:
-    uv run python -m openmanus_mcp
+# Bootstrap sibling repos and generate snippets (PowerShell)
+bootstrap-fleet:
+    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Bootstrap-Fleet.ps1
 
-# FastAPI backend (webapp proxy target), default 127.0.0.1:10768
-api:
-    uv run python -m openmanus_mcp.run_api
+# ── MCPB ──────────────────────────────────────────────────────────────────────
 
-# Python dev env
-install:
-    uv sync --extra dev
+# Build the .mcpb standalone bundle (SOTA v2.0)
+build-mcpb:
+    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build_mcpb.ps1
 
-format:
-    uv run ruff format src tests
+# ── Manus Core ────────────────────────────────────────────────────────────────
 
-test:
-    uv run pytest
+# Detect OpenManus local installation
+detect:
+    uv run python -m openmanus_mcp.openmanus_detect
 
-precommit:
-    uv run pre-commit run --all-files
+# List discovered OpenClaw-style skills
+skills:
+    uv run python -m openmanus_mcp.skills_catalog
 
-build:
-    uv build
+# Dry-run validation of the bridge (no subprocess)
+bridge-test op="validate":
+    uv run python -m openmanus_mcp.bridge_dry_run {{op}}
 
-# Vite production build (from repo root; no cd — works on older `just`)
+# System diagnostic and GPU info
+diag:
+    uv run python -m openmanus_mcp.system_info
+
+# ── Webapp ────────────────────────────────────────────────────────────────────
+
+# Build Vite production assets
 build-web:
     npm --prefix web_sota ci
     npm --prefix web_sota run build
 
-# Full stack with port clear: PowerShell only (see web_sota/start.ps1)
+# Start dashboard with port recovery (PowerShell)
 start-web *ARGS:
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File web_sota/start.ps1 {{ARGS}}
+    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File web_sota/start.ps1 {{ARGS}}
 
-# Validate glama.json is parseable JSON (Python, no jq dependency on Windows)
-check-glama:
-    uv run python -c "import json, pathlib; json.load(pathlib.Path('glama.json').open(encoding='utf-8')); print('glama.json: OK')"
+# ── System ────────────────────────────────────────────────────────────────────
+
+# Run the MCP server over stdio (default)
+run:
+    uv run python -m openmanus_mcp
+
+# Run the FastAPI bridge backend
+api:
+    uv run python -m openmanus_mcp.run_api
+
+# Repository statistics
+stats:
+    uv run python tools/repo_stats.py

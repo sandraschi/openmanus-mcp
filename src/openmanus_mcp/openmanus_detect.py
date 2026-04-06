@@ -29,3 +29,19 @@ def describe_openmanus(root: Path | None) -> OpenManusInfo | None:
         has_config_example=(r / "config" / "config.example.toml").is_file(),
         python_min_hint="3.12 (per upstream README)",
     )
+def main() -> None:
+    import sys
+
+    target = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
+    info = describe_openmanus(target)
+    if info:
+        print(f"Root: {info.root}")
+        print(f"Valid: {info.looks_valid}")
+        print(f"Main.py: {info.has_main_py}")
+        print(f"Config: {info.has_config_example}")
+    else:
+        print("No path provided or path invalid.")
+
+
+if __name__ == "__main__":
+    main()
