@@ -10,6 +10,7 @@ import contextlib
 import importlib.metadata
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -70,9 +71,10 @@ def _parse_name_version_requires(pyproject: Path) -> tuple[str | None, str | Non
 
 
 def _git_short(root: Path) -> str | None:
+    git_exe = shutil.which("git") or "git"
     try:
-        r = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
+        r = subprocess.run(  # noqa: S603
+            [git_exe, "rev-parse", "--short", "HEAD"],
             cwd=root,
             capture_output=True,
             text=True,
@@ -87,9 +89,10 @@ def _git_short(root: Path) -> str | None:
 
 
 def _git_branch(root: Path) -> str | None:
+    git_exe = shutil.which("git") or "git"
     try:
-        r = subprocess.run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        r = subprocess.run(  # noqa: S603
+            [git_exe, "rev-parse", "--abbrev-ref", "HEAD"],
             cwd=root,
             capture_output=True,
             text=True,

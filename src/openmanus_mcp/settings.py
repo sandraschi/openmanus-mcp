@@ -89,6 +89,18 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("OPENMANUS_MAX_SKILL_INJECT_CHARS", "MAX_SKILL_INJECT_CHARS"),
     )
 
+    @property
+    def repo_root(self) -> Path:
+        """The root of this openmanus-mcp repository."""
+        return Path(__file__).resolve().parents[2]
+
+    @property
+    def fleet_root(self) -> Path:
+        """Resolved fleet directory."""
+        if self.openmanus_fleet_root:
+            return self.openmanus_fleet_root
+        return self.repo_root / "fleet"
+
 
 def get_settings() -> Settings:
     return Settings()

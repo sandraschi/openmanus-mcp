@@ -230,6 +230,17 @@ def read_skill_body(
     return meta.name, raw
 
 
+def get_skill_content(skill_id: str, *, extra_dirs_semicolon: str) -> str | None:
+    """Return the full markdown content of a skill or None (unsafe check omitted for resources)."""
+    meta = find_skill_by_id(skill_id, extra_dirs_semicolon=extra_dirs_semicolon)
+    if meta is None:
+        return None
+    try:
+        return meta.path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+
+
 def format_full_skill_system_message(skill_name: str, body: str) -> str:
     return f"Full skill playbook ({skill_name}) — SKILL.md content:\n\n{body}"
 

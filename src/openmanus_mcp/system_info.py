@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import platform
 import re
+import shutil
 import subprocess
 import sys
 from typing import Any
@@ -13,9 +14,10 @@ def _list_gpus_windows() -> list[dict[str, Any]]:
     """Windows-specific GPU discovery via CIM/WMI."""
     gpus: list[dict[str, Any]] = []
     try:
-        proc = subprocess.run(
+        pwsh = shutil.which("powershell.exe") or "powershell.exe"
+        proc = subprocess.run(  # noqa: S603
             [
-                "powershell.exe",
+                pwsh,
                 "-NoProfile",
                 "-STA",
                 "-Command",
@@ -49,8 +51,9 @@ def _list_gpus_darwin() -> list[dict[str, Any]]:
     """macOS-specific GPU discovery via system_profiler."""
     gpus: list[dict[str, Any]] = []
     try:
-        proc = subprocess.run(
-            ["system_profiler", "SPDisplaysDataType"],
+        profiler = shutil.which("system_profiler") or "/usr/sbin/system_profiler"
+        proc = subprocess.run(  # noqa: S603
+            [profiler, "SPDisplaysDataType"],
             capture_output=True,
             text=True,
             timeout=25,
@@ -72,8 +75,9 @@ def _list_gpus_linux() -> list[dict[str, Any]]:
     """Linux GPU discovery via nvidia-smi."""
     gpus: list[dict[str, Any]] = []
     try:
-        proc = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+        smi = shutil.which("nvidia-smi") or "nvidia-smi"
+        proc = subprocess.run(  # noqa: S603
+            [smi, "--query-gpu=name", "--format=csv,noheader"],
             capture_output=True,
             text=True,
             timeout=12,

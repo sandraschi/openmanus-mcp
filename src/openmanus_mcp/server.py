@@ -21,6 +21,8 @@ from openmanus_mcp.openmanus_detect import OpenManusInfo, describe_openmanus
 from openmanus_mcp.runner import EntryPoint, RunResult
 from openmanus_mcp.runner import run_prompt as _run_prompt
 from openmanus_mcp.settings import Settings, get_settings
+from openmanus_mcp.skills_catalog import discover_skills, get_skill_content
+from openmanus_mcp.system_info import list_gpus
 
 # Configure structured logging for SOTA standards
 structlog.configure(
@@ -42,6 +44,7 @@ structlog.configure(
 _stderr = logging.StreamHandler(sys.stderr)
 _stderr.setFormatter(logging.Formatter("%(message)s"))
 root = logging.getLogger()
+_BACKGROUND_TASKS: set[asyncio.Task[Any]] = set()
 root.setLevel(logging.INFO)
 if not root.handlers:
     root.addHandler(_stderr)
@@ -96,9 +99,12 @@ class BridgeContext:
 async def _handle_status(ctx: BridgeContext) -> dict[str, Any]:
     elapsed_ms = (time.perf_counter() - ctx.start) * 1000
     store = mcp_job_store()
+    gpu_info = list_gpus()
+    gpu_names = [g.get("name", "Unknown") for g in gpu_info["gpus"]]
+    gpu_str = ", ".join(gpu_names) if gpu_names else "None"
     return {
         "success": True,
-        "message": "openmanus-mcp status",
+        "message": "openmanus-mcp status (SOTA High-Fidelity)",
         "result": {
             "server_version": __version__,
             "openmanus_root_set": ctx.settings.openmanus_root is not None,
@@ -109,12 +115,15 @@ async def _handle_status(ctx: BridgeContext) -> dict[str, Any]:
             "job_store_path": str(ctx.settings.job_store_path),
             "async_jobs_stored": store.stored_count(),
             "async_jobs_pending": store.pending_count(),
+            "hardware": gpu_info,
+            "fleet_root": str(ctx.settings.fleet_root),
         },
         "execution_time_ms": round(elapsed_ms, 2),
         "recommendations": [
             "Set OPENMANUS_ROOT to your OpenManus clone",
-            "Configure OpenManus config.toml for local LLM (e.g. Ollama)",
+            "Configure OpenManus config.toml for local LLM (e.g. Ollama or LM Studio)",
             "Use web_sota/start.ps1 for dashboard on 10769",
+            f"Detected GPU: {gpu_str}",
         ],
     }
 
@@ -225,7 +234,9 @@ async def _handle_run_prompt_async(
             r = await _run_prompt(ctx.info.root, prompt, ep, t_out)
             store.set_result(job_id, r)
 
-    asyncio.create_task(_bg(jid))
+    task = asyncio.create_task(_bg(jid))
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
     log.info("runner_async_queued", job_id=jid, entry_point=ep)
     return {
         "success": True,
@@ -276,6 +287,84 @@ async def _handle_job_status(job_id: str | None, ctx: BridgeContext) -> dict[str
     }
 
 
+async def _discover_fleet_mcp(settings: Settings) -> dict[str, Any]:
+    """Dynamically scan for onboarded fleet members and generate MCP config."""
+    mcp_servers = {}
+    mcp_servers["openmanus-mcp"] = {
+        "command": "uv",
+        "args": ["run", "python", "-m", "openmanus_mcp"],
+        "cwd": str(settings.repo_root),
+    }
+    fleet_dir = settings.fleet_root
+    if fleet_dir.is_dir():
+        for item in fleet_dir.iterdir():
+            if item.is_dir() and (item / "pyproject.toml").exists():
+                name = item.name
+                # Heuristic for Windows venv
+                venv_py = item / ".venv" / "Scripts" / "python.exe"
+                if venv_py.exists():
+                    mcp_servers[name] = {
+                        "command": str(venv_py),
+                        "args": ["-m", name.replace("-", "_")],
+                        "cwd": str(item),
+                    }
+                else:
+                    mcp_servers[name] = {
+                        "command": "uv",
+                        "args": ["run", "python", "-m", name.replace("-", "_")],
+                        "cwd": str(item),
+                    }
+    return mcp_servers
+
+
+async def _handle_fleet(ctx: BridgeContext) -> dict[str, Any]:
+    elapsed_ms = (time.perf_counter() - ctx.start) * 1000
+    mcp_servers = await _discover_fleet_mcp(ctx.settings)
+    return {
+        "success": True,
+        "message": f"Discovered {len(mcp_servers)} fleet members",
+        "result": {"mcpServers": mcp_servers},
+        "execution_time_ms": round(elapsed_ms, 2),
+    }
+
+
+@mcp.resource("skills://{skill_id}")
+def get_skill_resource(skill_id: str) -> str:
+    """Read a specific skill's SKILL.md content."""
+    settings = get_settings()
+    content = get_skill_content(skill_id, extra_dirs_semicolon=settings.skills_extra_dirs)
+    if content is None:
+        raise ValueError(f"Skill {skill_id} not found")
+    return content
+
+
+@mcp.list_resources()
+async def list_skills_resources() -> list[mcp.Resource]:
+    """List all discovered skills as MCP resources."""
+    settings = get_settings()
+    metas = discover_skills(extra_dirs_semicolon=settings.skills_extra_dirs)
+    # The FastMCP Resource constructor expects specific fields
+    from fastmcp import Resource
+    return [
+        Resource(
+            uri=f"skills://{m.skill_id}",
+            name=m.name,
+            description=m.description,
+            mime_type="text/markdown",
+        )
+        for m in metas
+    ]
+
+
+@mcp.resource("fleet://config")
+async def get_fleet_config_resource() -> str:
+    """Dynamically generated Cursor/MCP config for all fleet members."""
+    import json
+
+    servers = await _discover_fleet_mcp(get_settings())
+    return json.dumps({"mcpServers": servers}, indent=2)
+
+
 @mcp.tool()
 async def openmanus_bridge(
     operation: str,
@@ -286,7 +375,7 @@ async def openmanus_bridge(
 ) -> dict[str, Any]:
     """OPENMANUS_BRIDGE — Control plane for the OpenManus FOSS CLI wrapper.
 
-    PORTMANTEAU PATTERN: Single entry point for status/validate/run/async.
+    PORTMANTEAU PATTERN: Single entry point for status/validate/run/async/fleet.
 
     Operations:
         status           — server + path health check (fast)
@@ -294,9 +383,10 @@ async def openmanus_bridge(
         run_prompt       — synchronous subprocess run; waits for completion
         run_prompt_async — fire-and-forget; returns job_id immediately
         job_status       — poll an async job by job_id
+        fleet            — dynamically discover onboarded fleet members
 
     Args:
-        operation:    One of: status, validate, run_prompt, run_prompt_async, job_status.
+        operation:    One of: status, validate, run_prompt, run_prompt_async, job_status, fleet.
         prompt:       Task text for run_prompt / run_prompt_async.
         entry_point:  "main.py" (default) or "run_flow.py".
         timeout_s:    Override runner timeout (seconds). Uses Settings.runner_timeout_s if None.
@@ -319,6 +409,8 @@ async def openmanus_bridge(
         return await _handle_run_prompt_async(prompt, entry_point, timeout_s, ctx)
     if op == "job_status":
         return await _handle_job_status(job_id, ctx)
+    if op == "fleet":
+        return await _handle_fleet(ctx)
 
     return {
         "success": False,

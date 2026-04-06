@@ -6,6 +6,7 @@ import asyncio
 import logging
 import time
 import uuid
+from typing import Any
 
 from openmanus_mcp.concurrency import api_run_limiter
 from openmanus_mcp.job_store import api_job_store
@@ -20,6 +21,7 @@ from openmanus_mcp.supervisor.state import (
 )
 
 log = logging.getLogger(__name__)
+_BACKGROUND_TASKS: set[asyncio.Task[Any]] = set()
 
 
 class SupervisorState:
@@ -80,7 +82,9 @@ async def _fire_scheduled_run(ent: ScheduleEntry) -> None:
         finally:
             await lim.release()
 
-    asyncio.create_task(_bg())
+    task = asyncio.create_task(_bg())
+    _BACKGROUND_TASKS.add(task)
+    task.add_done_callback(_BACKGROUND_TASKS.discard)
     log.info("supervisor: queued schedule %s job_id=%s", ent.name, jid)
 
 
