@@ -32,6 +32,7 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "structlog>=24.0.0",
     "httpx>=0.28.0",
+    "prefab-ui>=0.14.0",
 ]
 
 [project.optional-dependencies]

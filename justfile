@@ -35,11 +35,15 @@ default:
 # Execute Ruff linting
 lint:
     uv run ruff check .
+    Set-Location '{{justfile_directory()}}\web_sota'
+    npx @biomejs/biome ci .
 
 # Execute Ruff fix and formatting
 fix:
     uv run ruff check . --fix --unsafe-fixes
     uv run ruff format .
+    Set-Location '{{justfile_directory()}}\web_sota'
+    npx @biomejs/biome check --write .
 
 # Python dev env sync
 install:
