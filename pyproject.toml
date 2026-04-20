@@ -1,7 +1,7 @@
 [project]
 name = "openmanus-mcp"
 version = "0.1.0b1"
-description = "FastMCP 3.2 MCP + React dashboard for OpenManus (FOSS). Local LLM. Fleet onboarding."
+description = "FastMCP 3.2.0 MCP + React dashboard for OpenManus (FOSS). Local LLM. Fleet onboarding."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"

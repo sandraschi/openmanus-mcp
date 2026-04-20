@@ -1,5 +1,15 @@
+﻿Param([switch]$Headless)
+
+# --- SOTA Headless Standard ---
+if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
+    Start-Process pwsh -ArgumentList '-NoProfile', '-File', $PSCommandPath, '-Headless' -WindowStyle Hidden
+    exit
+}
+$WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
+# ------------------------------
+
 # SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
-# Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev — WEBAPP_STANDARDS lifecycle)
+# Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev â€” WEBAPP_STANDARDS lifecycle)
 param(
     [switch]$Build,
     [switch]$Engine,
@@ -96,3 +106,4 @@ if ($Build) {
 $env:VITE_DEV_PORT = "$FrontendPort"
 $env:VITE_API_TARGET = "http://127.0.0.1:$BackendPort"
 npm run dev -- --port $FrontendPort --host 127.0.0.1
+
