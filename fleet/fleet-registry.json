@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "openmanus-mcp": {
+      "command": "uv",
+      "args": ["run", "-m", "openmanus_mcp"],
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "FASTMCP_LOG_LEVEL": "WARNING"
+      },
+      "capabilities": {
+        "tools": { "enabled": true },
+        "prompts": { "enabled": true }
+      },
+      "metadata": {
+        "version": "0.1.0",
+        "tags": ["openmanus", "agent", "orchestration"],
+        "homepage": "https://github.com/sandraschi/openmanus-mcp"
+      }
+    }
+  },
+  "webapp": {
+    "frontend": {
+      "port": 10769,
+      "label": "OpenManus MCP Dashboard",
+      "start_command": "powershell ./web_sota/start.ps1"
+    },
+    "backend": {
+      "port": 10768,
+      "label": "OpenManus MCP API",
+      "start_command": "uv run python -m openmanus_mcp.run_api"
+    }
+  }
+}
