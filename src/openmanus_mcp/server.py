@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import structlog
-from fastmcp import FastMCP
+from fastmcp import Context, FastMCP, Resource
 
 from openmanus_mcp import __version__
 from openmanus_mcp.job_store import mcp_job_store
@@ -69,12 +69,12 @@ async def server_lifespan(_mcp: FastMCP) -> AsyncIterator[None]:
 
     if info is None:
         log.warning(
-            "openmanus_mcp_startup",
+            "openmanus_mcp_startup_warn",
             message="OPENMANUS_ROOT not set — tools will return setup hints only",
         )
     elif not info.looks_valid:
         log.warning(
-            "openmanus_mcp_startup",
+            "openmanus_mcp_startup_warn",
             message="OPENMANUS_ROOT does not look like OpenManus (missing main.py)",
             path=str(info.root),
         )
@@ -343,8 +343,6 @@ async def list_skills_resources() -> list[mcp.Resource]:
     """List all discovered skills as MCP resources."""
     settings = get_settings()
     metas = discover_skills(extra_dirs_semicolon=settings.skills_extra_dirs)
-    # The FastMCP Resource constructor expects specific fields
-    from fastmcp import Resource
     return [
         Resource(
             uri=f"skills://{m.skill_id}",
@@ -392,9 +390,10 @@ async def openmanus_bridge(
         timeout_s:    Override runner timeout (seconds). Uses Settings.runner_timeout_s if None.
         job_id:       Required for job_status.
     """
+    settings = get_settings()
     ctx = BridgeContext(
-        settings=get_settings(),
-        info=describe_openmanus(get_settings().openmanus_root),
+        settings=settings,
+        info=describe_openmanus(settings.openmanus_root),
         start=time.perf_counter(),
     )
     op = operation.strip().lower()
@@ -440,14 +439,41 @@ def openmanus_task_template(topic: str = "general") -> str:
 
 
 @mcp.tool()
-async def openmanus_sample_relay(query: str) -> str:
-    """OPENMANUS_SAMPLE_RELAY — Request an autonomous reasoning step from the host.
+async def openmanus_sample_relay(query: str, ctx: Context) -> str:
+    """OPENMANUS_SAMPLE_RELAY — Delegate a sub-task reasoning step to the host LLM via sampling.
 
-    Uses FastMCP sampling to leverage the host LLM for sub-task planning before
-    main agent execution.
+    Sends *query* to the MCP client's LLM (e.g. Claude Desktop, Cursor) and returns its
+    response. Useful for pre-flight planning, prompt refinement, or OpenManus task
+    decomposition before invoking openmanus_bridge(run_prompt).
+
+    Falls back gracefully when the client does not support sampling (returns an
+    explanatory string rather than raising).
+
+    Args:
+        query: The question or sub-task to reason about.
+        ctx:   FastMCP context — injected automatically, do not pass manually.
     """
-    log.info("sampling_request", query=query)
-    return (
-        f"[MOCK] Host LLM reasoned about: {query}. "
-        "Recommendation: Proceed with OpenManus bridge."
+    log.info("sampling_request", query=query[:120])
+    system_prompt = (
+        "You are a planning assistant for the OpenManus agent framework. "
+        "Given the user's query, briefly analyse what OpenManus tools or steps "
+        "would best accomplish the task, and recommend a clear next action. "
+        "Be concise (≤150 words)."
     )
+    try:
+        result = await ctx.sample(
+            messages=query,
+            system_prompt=system_prompt,
+            temperature=0.3,
+            max_tokens=300,
+        )
+        text = result.text or ""
+        log.info("sampling_response", chars=len(text))
+        return text
+    except Exception as exc:
+        # Client doesn't support sampling, or transport error — degrade gracefully
+        log.warning("sampling_unavailable", exc=str(exc))
+        return (
+            f"[sampling unavailable: {exc}] "
+            "Tip: use openmanus_bridge(\"run_prompt\", prompt=...) to execute the task directly."
+        )

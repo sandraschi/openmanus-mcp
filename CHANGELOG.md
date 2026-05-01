@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+- **`openmanus_sample_relay`**: Implemented real FastMCP 3.2 sampling via `ctx.sample()` — delegates sub-task reasoning to the host LLM (Claude Desktop, Cursor, etc.) with a planning-focused system prompt. Gracefully degrades with an explanatory string when the client doesn't support sampling rather than raising.
+- **`openmanus_bridge`**: Eliminated redundant `get_settings()` double-call — `Settings` is now instantiated once per request and passed via `BridgeContext`, avoiding double env/file reads.
+- **Startup log key collision**: Renamed warning-branch log events to `openmanus_mcp_startup_warn` so `openmanus_mcp_startup` is no longer emitted twice with different severities, which broke log filtering.
+- **`list_skills_resources` inline import**: Removed `from fastmcp import Resource` inside the function body — `Resource` and `Context` are now imported at module level alongside `FastMCP`.
+- **`pyproject.toml`**: Pinned `fastmcp>=3.2.4,<4` (was `>=3.2.0`) to track current release.
+
 ### Added
 - **Subprocess runner:** `runner.py` — `main.py` uses **`--prompt`** when the prompt is a single line; multiline → stdin. **`run_flow.py`** via stdin. REST **`POST /api/v1/run`**, **`/run/async`**, **`GET /api/v1/run/jobs/{id}`**.
 - **`job_store.py`:** bounded **FIFO eviction** for completed async jobs (`OPENMANUS_JOB_STORE_MAX_COMPLETED`); separate stores for **MCP** vs **API** process.
