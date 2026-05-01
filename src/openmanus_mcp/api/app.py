@@ -459,11 +459,14 @@ async def capabilities() -> dict[str, Any]:
         "status": "ok",
         "server": {"name": "openmanus-mcp", "version": __version__, "fastmcp": "3.2"},
         "tool_surface": {
-            "total": 5,
+            "total": 7,
             "portmanteau_count": 1,
-            "atomic_count": 4,
+            "atomic_count": 6,
             "portmanteau_tools": ["openmanus_bridge"],
-            "atomic_tools": ["status", "validate", "run_prompt", "run_prompt_async", "job_status"],
+            "atomic_tools": [
+                "status", "validate", "run_prompt", "run_prompt_async", "job_status",
+                "bash", "computer",
+            ],
         },
         "features": {
             "sampling": False,
