@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Any, Literal
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from openmanus_mcp import __version__
@@ -74,6 +74,27 @@ try:
     _ui_port = int(os.environ.get("OPENMANUS_MCP_UI_PORT", str(_ui_port)))
 except ValueError:
     _ui_port = int(get_settings().api_port) + 1
+
+_API_KEY = os.environ.get("OPENMANUS_MCP_API_KEY", "")
+
+_PUBLIC_PATHS = {"/api/v1/health", "/api/health", "/api/capabilities", "/docs", "/redoc", "/openapi.json"}
+
+
+@app.middleware("http")
+async def _api_auth_middleware(request: Request, call_next):
+    if not _API_KEY:
+        return await call_next(request)
+    path = request.url.path
+    if any(path.startswith(p) for p in _PUBLIC_PATHS):
+        return await call_next(request)
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return JSONResponse(status_code=401, content={"detail": "Missing API key"})
+    token = auth.removeprefix("Bearer ")
+    if token != _API_KEY:
+        return JSONResponse(status_code=403, content={"detail": "Invalid API key"})
+    return await call_next(request)
+
 
 app.add_middleware(
     CORSMiddleware,
