@@ -46,7 +46,13 @@ from openmanus_mcp.skills_catalog import (
 from openmanus_mcp.supervisor.schedules import schedule_count
 from openmanus_mcp.supervisor.state import get_heartbeat
 from openmanus_mcp.supervisor.worker import start_supervisor, stop_supervisor
-from openmanus_mcp.system_info import list_gpus
+from openmanus_mcp.system_info import list_gpus as _list_gpus_raw
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
 
 
 @asynccontextmanager
@@ -169,8 +175,27 @@ async def skills_one(skill_id: str) -> dict[str, Any]:
 
 @app.get("/api/v1/system/gpu")
 async def system_gpu() -> dict[str, Any]:
-    """Host GPU / display adapter hints ( hardware awareness)."""
-    return list_gpus()
+    """Host GPU / display adapter hints (hardware awareness)."""
+    return _list_gpus_raw()
+
+
+@app.get("/api/v1/system")
+async def system_info() -> dict[str, Any]:
+    """System resources for Status/Audit page."""
+    cpu = 0.0
+    mem = {"total": 0, "used": 0, "percent": 0.0}
+    if HAS_PSUTIL:
+        cpu = psutil.cpu_percent(interval=0.3)
+        m = psutil.virtual_memory()
+        mem = {"total": m.total, "used": m.used, "percent": m.percent}
+    gpu_data = _list_gpus_raw()
+    gpu_name = (gpu_data.get("gpus") or [{}])[0].get("name", "unknown") if gpu_data.get("gpus") else "unknown"
+    return {
+        "cpu": cpu,
+        "memory": mem,
+        "platform": gpu_data.get("platform", "unknown"),
+        "gpu": gpu_name,
+    }
 
 
 @app.get("/api/v1/glama")
@@ -424,6 +449,46 @@ async def chat_completions(body: ChatCompletionRequest) -> dict[str, Any]:
 @app.get("/api/v1/health")
 async def health() -> dict[str, Any]:
     return {"ok": True, "service": "openmanus-mcp", "version": __version__}
+
+
+@app.get("/api/capabilities")
+async def capabilities() -> dict[str, Any]:
+    """Runtime capability introspection endpoint (WEBAPP_STANDARDS.md §1.4)."""
+    import datetime
+    return {
+        "status": "ok",
+        "server": {"name": "openmanus-mcp", "version": __version__, "fastmcp": "3.2"},
+        "tool_surface": {
+            "total": 5,
+            "portmanteau_count": 1,
+            "atomic_count": 4,
+            "portmanteau_tools": ["openmanus_bridge"],
+            "atomic_tools": ["status", "validate", "run_prompt", "run_prompt_async", "job_status"],
+        },
+        "features": {
+            "sampling": False,
+            "agentic_workflows": True,
+            "prompts": True,
+            "resources": True,
+            "skills": True,
+        },
+        "inventory": {
+            "workflow_tools": ["openmanus_bridge"],
+            "prompt_names": ["agent_instructions"],
+            "resource_uris": ["skill://"],
+            "skill_uris": ["skill://openmanus-bridge"],
+        },
+        "runtime": {
+            "transport": "stdio",
+            "surface_mode": "portmanteau",
+        },
+        "fleet": {
+            "frontend_port": 10769,
+            "backend_port": 10768,
+            "mcp_command": "uv run -m openmanus_mcp",
+        },
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+    }
 
 
 @app.get("/api/v1/status")

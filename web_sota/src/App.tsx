@@ -6,10 +6,12 @@ import AppsPage from "./pages/Apps";
 import FleetPage from "./pages/Fleet";
 import HelpPage from "./pages/Help";
 import HomePage from "./pages/Home";
-import RobotsPage from "./pages/Robots";
 import RunPage from "./pages/Run";
 import SettingsPage from "./pages/Settings";
 import ToolsPage from "./pages/Tools";
+import StatusAuditPage from "./pages/StatusAudit";
+import ChatPage from "./pages/ChatPage";
+import ApiDocsPage from "./pages/ApiDocs";
 
 export default function App() {
   return (
@@ -22,7 +24,9 @@ export default function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/run" element={<RunPage />} />
         <Route path="/fleet" element={<FleetPage />} />
-        <Route path="/robots" element={<RobotsPage />} />
+        <Route path="/status" element={<StatusAuditPage />} />
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/api-docs" element={<ApiDocsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

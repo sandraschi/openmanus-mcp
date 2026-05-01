@@ -1,9 +1,9 @@
 import * as React from "react";
 import {
   Activity,
-  Bot,
   Box,
   CircleHelp,
+  Code2,
   Home,
   Layers,
   LayoutGrid,
@@ -32,21 +32,25 @@ const PATH_TITLE: Record<string, string> = {
   "/settings": "Settings",
   "/run": "Run",
   "/fleet": "Fleet",
-  "/robots": "My Robots",
+  "/status": "Status",
+  "/chat": "Chat",
+  "/api-docs": "API Docs",
 };
 
 const coreNav: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { to: "/", label: "Home", icon: Home },
   { to: "/tools", label: "Tools", icon: Terminal },
   { to: "/apps", label: "Apps", icon: LayoutGrid },
+  { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
   { to: "/help", label: "Help", icon: CircleHelp },
+  { to: "/status", label: "Status", icon: Activity },
 ];
 
 const projectNav: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { to: "/run", label: "Run", icon: PlayCircle },
   { to: "/fleet", label: "Fleet", icon: Layers },
-  { to: "/robots", label: "My Robots", icon: Bot },
+  { to: "/api-docs", label: "API Docs", icon: Code2 },
 ];
 
 function SidebarNav({
@@ -136,7 +140,7 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans selection:bg-accent selection:text-accent-foreground md:flex-row">
-      {/* Desktop sidebar — z-40 per WEBAPP_STANDARDS */}
+      {/* Desktop sidebar */}
       <aside
         className={cn(
           "sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-border/80 bg-card/50 backdrop-blur-xl transition-all duration-300 md:flex",

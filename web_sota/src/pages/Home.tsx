@@ -1,4 +1,4 @@
-import { Activity, Bot, PlayCircle } from "lucide-react";
+import { Activity, PlayCircle, Server, ListTree, Cpu, HardDrive, Terminal, AppWindow } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -18,6 +18,23 @@ type Status = {
   job_store_path?: string;
 };
 
+function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string | number; sub?: string }) {
+  return (
+    <Card className="border-border/60 bg-card/40 backdrop-blur-md">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-primary" />
+          <CardTitle className="text-base font-semibold">{label}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {sub && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function HomePage() {
   const { appendLog } = useLogger();
   const [status, setStatus] = useState<Status | null>(null);
@@ -31,18 +48,14 @@ export default function HomePage() {
       setErr(null);
       try {
         const s = await fetch("/api/v1/status").then((r) => r.json());
-        if (!c) {
-          setStatus(s as Status);
-        }
+        if (!c) setStatus(s as Status);
       } catch (e) {
         if (!c) setErr(String(e));
       } finally {
         if (!c) setLoading(false);
       }
     })();
-    return () => {
-      c = true;
-    };
+    return () => { c = true; };
   }, []);
 
   useEffect(() => {
@@ -57,16 +70,12 @@ export default function HomePage() {
             <Activity className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Fleet Dashboard</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Modernized OpenManus Control Plane · <strong>FastMCP 3.2.0</strong>
+              OpenManus MCP Bridge · <strong>FastMCP 3.2</strong>
             </p>
           </div>
         </div>
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground/80">
-          The <strong>OpenManus MCP Bridge</strong> provides a high-performance orchestration layer for the FOSS OpenManus agent. 
-          Managed via persistent job stores and integrated with physical robotics hardware.
-        </p>
       </header>
 
       {err && (
@@ -76,8 +85,14 @@ export default function HomePage() {
         </div>
       )}
 
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={Server} label="Status" value={status?.openmanus_valid ? "Ready" : "Unconfigured"} sub={status?.version || "?"} />
+        <StatCard icon={ListTree} label="Stored Jobs" value={status?.async_jobs_stored ?? 0} sub={`${status?.async_jobs_pending ?? 0} pending`} />
+        <StatCard icon={Terminal} label="Timeout" value={`${status?.runner_timeout_s ?? "?"}s`} sub="runner timeout" />
+        <StatCard icon={HardDrive} label="Tier" value="FastMCP 3.2" sub="SOTA compliant" />
+      </div>
+
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Core Status Card */}
         <Card className="border-border/60 bg-card/40 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -114,7 +129,6 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Persistence Card */}
         <Card className="border-border/60 bg-card/40 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -151,36 +165,26 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* Robotics Alpha Card */}
         <Card className="border-border/60 bg-card/40 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <Bot className="h-4 w-4 text-primary" />
-              Hardware Shield
+              <AppWindow className="h-4 w-4 text-primary" />
+              Quick Actions
             </CardTitle>
-            <CardDescription>Robotics Bridge Alpha</CardDescription>
+            <CardDescription>Common operations</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm italic text-muted-foreground">
-            Discovered local units in current network fleet. Yahboom + Unitree support.
-            <div className="mt-4">
-              <Button asChild size="sm" variant="outline" className="w-full text-xs">
-                <Link to="/robots">Open Robot Deck</Link>
-              </Button>
-            </div>
+          <CardContent className="space-y-2">
+            <Button asChild size="sm" variant="outline" className="w-full">
+              <Link to="/run"><PlayCircle className="mr-2 h-4 w-4" /> Start Agent Run</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="w-full">
+              <Link to="/tools"><Terminal className="mr-2 h-4 w-4" /> MCP Tools</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="w-full">
+              <Link to="/status"><Activity className="mr-2 h-4 w-4" /> Status & Audit</Link>
+            </Button>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4 pt-4 text-sm font-medium">
-        <Link to="/run" className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-primary-foreground shadow-sm hover:brightness-110">
-          <PlayCircle className="h-4 w-4" /> Start Agent Run
-        </Link>
-        <Link to="/fleet" className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-4 py-2 hover:bg-card/80">
-          Fleet Explorer
-        </Link>
-        <Link to="/tools" className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-4 py-2 hover:bg-card/80">
-          MCP Tools
-        </Link>
       </div>
 
       <footer className="mt-10 border-t border-border/20 pt-6">
@@ -189,9 +193,7 @@ export default function HomePage() {
             <code className="rounded bg-muted/30 px-1 py-0.5">openmanus_bridge</code>
             <span>Portmanteau Standard v1.2</span>
           </div>
-          <div>
-            Built with <strong>Next-SOTA Design System</strong> · Vienna 2026
-          </div>
+          <div>Built with SOTA Design System · Vienna 2026</div>
         </div>
       </footer>
     </div>
