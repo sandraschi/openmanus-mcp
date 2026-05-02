@@ -2,7 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+- **`computer` tool**: Windows-native desktop automation via win32 API — mouse move/click/drag/scroll, keyboard type/press/hotkey, full-screen screenshots. Confirmation gate on keyboard/screenshot. Blocked in headless mode (no TTY or `LOCAL_COMPUTER_NO_PROMPT`). See `app/tool/local_computer_use.py`.
+- **`bash` in Manus agent**: Full terminal added to default agent toolset alongside `computer`. Command denylist blocks destructive/privilege-escalation operations. Obfuscation detection decodes hex/octal/printf/ANSI-C quoting.
+- **API authentication**: Optional `OPENMANUS_MCP_API_KEY` env var. Auto-generates random hex key if unset (written to `.api_key`). Bearer token middleware gates all endpoints except health/capabilities/docs.
+- **`/api/capabilities` endpoint**: Runtime introspection per WEBAPP_STANDARDS §1.4. Returns tool surface, features, fleet metadata.
+- **`/api/v1/system` endpoint**: psutil CPU/memory + GPU name for Status & Audit page.
+- **SOTA pages** — Status & Audit (CPU/mem/gpu gauges, live log), Chat (Ollama/LLM, 3 personas, prompt refinement), API Docs (Swagger/ReDoc iframe).
+- **Upstream SECURITY.md**: Documented all risks, mitigations, and deployment practices.
+
 ### Fixed
+- **Robotics residue**: Removed `Robots.tsx`, "Hardware Shield" dashboard card, sidebar references. OpenManus is an agent bridge, not a robotics app.
+- **Sidebar**: Core nav: Home/Tools/Apps/Chat/Settings/Help/Status. Project nav: Run/Fleet/API Docs.
 - **`openmanus_sample_relay`**: Implemented real FastMCP 3.2 sampling via `ctx.sample()` — delegates sub-task reasoning to the host LLM (Claude Desktop, Cursor, etc.) with a planning-focused system prompt. Gracefully degrades with an explanatory string when the client doesn't support sampling rather than raising.
 - **`openmanus_bridge`**: Eliminated redundant `get_settings()` double-call — `Settings` is now instantiated once per request and passed via `BridgeContext`, avoiding double env/file reads.
 - **Startup log key collision**: Renamed warning-branch log events to `openmanus_mcp_startup_warn` so `openmanus_mcp_startup` is no longer emitted twice with different severities, which broke log filtering.
