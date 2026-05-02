@@ -75,9 +75,20 @@ try:
 except ValueError:
     _ui_port = int(get_settings().api_port) + 1
 
-_API_KEY = os.environ.get("OPENMANUS_MCP_API_KEY", "")
-
 _PUBLIC_PATHS = {"/api/v1/health", "/api/health", "/api/capabilities", "/docs", "/redoc", "/openapi.json"}
+
+_API_KEY = os.environ.get("OPENMANUS_MCP_API_KEY", "")
+if not _API_KEY:
+    import secrets
+    _API_KEY = secrets.token_hex(32)
+    _key_file = _repo_root() / ".api_key"
+    try:
+        _key_file.write_text(_API_KEY)
+        print(f"\n  WARNING: No OPENMANUS_MCP_API_KEY set. Auto-generated key written to {_key_file}")
+        print(f"  Set OPENMANUS_MCP_API_KEY={_API_KEY} to enable API authentication\n")
+    except Exception:
+        print(f"\n  WARNING: No OPENMANUS_MCP_API_KEY set. Auto-generated key: {_API_KEY}")
+        print(f"  Set OPENMANUS_MCP_API_KEY={_API_KEY} to enable API authentication\n")
 
 
 @app.middleware("http")
