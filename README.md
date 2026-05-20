@@ -1,5 +1,12 @@
 # openmanus-mcp — MCP bridge + dashboard for OpenManus
 
+<p align="center">
+  <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
+  <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+</p>
+
 FastMCP 3.2 server that wraps [OpenManus](https://github.com/FoundationAgents/OpenManus) (FOSS agent framework) into MCP tools, with a SOTA fleet webapp dashboard.
 
 Includes **Windows-native computer use** (mouse/keyboard/screenshot via win32 API) and **bash execution** — both with security hardening.
@@ -43,21 +50,25 @@ MCP hosts ←→ openmanus-mcp (FastMCP 3.2, stdio)
 ## Quick Start
 
 ```powershell
+git clone https://github.com/sandraschi/openmanus-mcp
+cd openmanus-mcp
+just
+```
+
+This opens an interactive dashboard showing all available commands. Run `just bootstrap` to install dependencies, then `just serve` or `just dev` to start.
+
+### Manual Setup
+
+If you don't have `just` installed:
 # Start everything
 .\web_sota\start.ps1
-
 # Or individually:
 uv run python -m openmanus_mcp           # MCP server
 uv run python -m openmanus_mcp.run_api   # FastAPI backend
 cd web_sota && npm run dev               # Frontend
-```
-
 ### Configuration
-
 Set `OPENMANUS_MCP_API_KEY` for API authentication:
-```powershell
 $env:OPENMANUS_MCP_API_KEY = "your-secret-key"
-```
 If not set, a random key is auto-generated and written to `.api_key`.
 
 ## Security
