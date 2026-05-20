@@ -7,6 +7,9 @@
   <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
 </p>
 
+
+> 📖 **[Installation Guide](INSTALL.md)** — quick start, manual setup, and troubleshooting
+
 FastMCP 3.2 server that wraps [OpenManus](https://github.com/FoundationAgents/OpenManus) (FOSS agent framework) into MCP tools, with a SOTA fleet webapp dashboard.
 
 Includes **Windows-native computer use** (mouse/keyboard/screenshot via win32 API) and **bash execution** — both with security hardening.
