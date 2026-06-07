@@ -18,6 +18,8 @@ $FleetStart = Initialize-FleetStartMode @PSBoundParameters
 Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
 Stop-FleetPortSquatters -Ports @($BackendPort, $FrontendPort) -Label "openmanus-mcp"
 
+if (-not (Assert-FleetPortsAvailable -Ports @($BackendPort, $FrontendPort) -Label "openmanus-mcp")) { exit 1 }
+
 # SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
 # Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev - WEBAPP_STANDARDS lifecycle)
 $ApiHealth = "http://127.0.0.1:$BackendPort/api/v1/health"
@@ -98,5 +100,6 @@ if ($Build) {
 $env:VITE_DEV_PORT = "$FrontendPort"
 $env:VITE_API_TARGET = "http://127.0.0.1:$BackendPort"
 npm run dev -- --port $FrontendPort --host 127.0.0.1
+
 
 
