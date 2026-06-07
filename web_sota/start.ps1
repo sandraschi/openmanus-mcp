@@ -1,23 +1,27 @@
-﻿Param([switch]$Headless)
-
-# --- SOTA Headless Standard ---
-if ($Headless -and ($Host.UI.RawUI.WindowTitle -notmatch 'Hidden')) {
-    Start-Process pwsh -ArgumentList '-NoProfile', '-File', $PSCommandPath, '-Headless' -WindowStyle Hidden
-    exit
-}
-$WindowStyle = if ($Headless) { 'Hidden' } else { 'Normal' }
-# ------------------------------
-
-# SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
-# Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev â€” WEBAPP_STANDARDS lifecycle)
-param(
+﻿param(
+    [switch]$Headless,
+    [switch]$BackendOnly,
     [switch]$Build,
     [switch]$Engine,
+    [switch]$NoBrowser,
     [int]$BackendPort = 10768,
     [int]$FrontendPort = 10769
 )
+
+$FleetStartPath = Join-Path $RepoRoot "scripts\FleetStartMode.ps1"
+if (-not (Test-Path -LiteralPath $FleetStartPath)) {
+    Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
+    exit 1
+}
+. $FleetStartPath
+$FleetStart = Initialize-FleetStartMode @PSBoundParameters
+Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
+Stop-FleetPortSquatters -Ports @($BackendPort, $FrontendPort) -Label "openmanus-mcp"
+
+# SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
+# Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev - WEBAPP_STANDARDS lifecycle)
 $ApiHealth = "http://127.0.0.1:$BackendPort/api/v1/health"
-$MaxWaitSec = 30
+$MaxWaitSec = 90
 
 if (Test-Path (Join-Path $PSScriptRoot "package.json")) {
     $WebSotaRoot = $PSScriptRoot
@@ -51,29 +55,13 @@ if ($Engine) {
 }
 
 
-function Stop-PortProcess {
-    param([int]$Port)
-    $conn = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
-    if ($conn) {
-        $procId = $conn.OwningProcess | Select-Object -First 1 -Unique
-        if ($procId) {
-            Write-Host "Stopping process on port $Port (PID: $procId)"
-            Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 1
-        }
-    }
-}
-
-Write-Host "Clearing ports $BackendPort / $FrontendPort ..."
-Stop-PortProcess -Port $BackendPort
-Stop-PortProcess -Port $FrontendPort
-
 $env:OPENMANUS_MCP_API_PORT = "$BackendPort"
 $env:OPENMANUS_MCP_API_HOST = "127.0.0.1"
 $env:OPENMANUS_MCP_UI_PORT = "$FrontendPort"
 
 Write-Host "Starting FastAPI backend on $BackendPort ..."
-$backendProc = Start-Process -FilePath "uv" -ArgumentList "run", "python", "-m", "openmanus_mcp.run_api" -WorkingDirectory $RepoRoot -PassThru -NoNewWindow
+$backendCmd = "Set-Location '$RepoRoot'; `$env:OPENMANUS_MCP_API_PORT='$BackendPort'; `$env:OPENMANUS_MCP_API_HOST='127.0.0.1'; uv run --project '$RepoRoot' python -m openmanus_mcp.run_api"
+$backendProc = Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Normal", "-Command", $backendCmd -PassThru
 
 $waited = 0
 $BackendStarted = $false
@@ -94,6 +82,10 @@ if (-not $BackendStarted) {
     Write-Host "WARNING: Backend did not respond within ${MaxWaitSec}s. Check uv run from repo root."
 }
 
+if (-not $FleetStart.RunFrontend) {
+    while ($true) { Start-Sleep -Seconds 60 }
+}
+
 Write-Host "Starting Vite on $FrontendPort ..."
 Set-Location $WebSotaRoot
 if (-not (Test-Path "node_modules")) {
@@ -106,4 +98,5 @@ if ($Build) {
 $env:VITE_DEV_PORT = "$FrontendPort"
 $env:VITE_API_TARGET = "http://127.0.0.1:$BackendPort"
 npm run dev -- --port $FrontendPort --host 127.0.0.1
+
 
