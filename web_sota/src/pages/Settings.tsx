@@ -21,6 +21,38 @@ type SupervisorSlice = {
   };
 };
 
+function LLMSettings() {
+    const [providers, setProviders] = useState<Record<string, {name:string}[]>>({});
+    const [selectedProvider, setSelectedProvider] = useState("ollama");
+    const [selectedModel, setSelectedModel] = useState("");
+    useEffect(() => {
+        fetch("/api/llm/providers").then(r => r.json()).then(d => {
+            setProviders(d);
+            const savedP = localStorage.getItem("llm_provider") || "ollama";
+            const savedM = localStorage.getItem("llm_model") || "";
+            setSelectedProvider(savedP);
+            const models = d[savedP === "ollama" ? "ollama" : "lm_studio"] || [];
+            setSelectedModel(savedM && models.some((m:{name:string}) => m.name === savedM) ? savedM : (models[0]?.name || ""));
+        }).catch(() => {
+            setProviders({ ollama: [{name:"llama3.2:3b"}] });
+            setSelectedModel(localStorage.getItem("llm_model") || "llama3.2:3b");
+        });
+    }, []);
+    const save = (p:string, m:string) => { localStorage.setItem("llm_provider", p); localStorage.setItem("llm_model", m); };
+    const models = providers[selectedProvider === "ollama" ? "ollama" : "lm_studio"] || [];
+    return (
+        <div className="space-y-3">
+            <select className="h-9 w-full rounded-md border border-border/50 bg-background/20 px-3 text-sm" value={selectedProvider} onChange={(e) => { setSelectedProvider(e.target.value); save(e.target.value, ""); }}>
+                <option value="ollama">Ollama</option>
+                <option value="lm_studio">LM Studio</option>
+            </select>
+            <select className="h-9 w-full rounded-md border border-border/50 bg-background/20 px-3 text-sm" value={selectedModel} onChange={(e) => { setSelectedModel(e.target.value); save(selectedProvider, e.target.value); }}>
+                {models.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
+            </select>
+        </div>
+    );
+}
+
 export default function SettingsPage() {
   const [ollama, setOllama] = useState<Glom | null>(null);
   const [lm, setLm] = useState<Glom | null>(null);
@@ -105,6 +137,16 @@ export default function SettingsPage() {
           <Button variant={theme === "light" ? "default" : "outline"} onClick={() => setTheme("light")}>
             Light
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Local LLM</CardTitle>
+          <CardDescription>Provider and model selection</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LLMSettings />
         </CardContent>
       </Card>
 

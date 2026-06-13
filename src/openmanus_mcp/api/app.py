@@ -77,6 +77,12 @@ except ValueError:
 
 _PUBLIC_PATHS = {"/api/v1/health", "/api/health", "/api/capabilities", "/docs", "/redoc", "/openapi.json"}
 
+
+def _repo_root() -> Path:
+    """openmanus_mcp/api/app.py → parents[3] == repository root."""
+    return Path(__file__).resolve().parents[3]
+
+
 _API_KEY = os.environ.get("OPENMANUS_MCP_API_KEY", "")
 if not _API_KEY:
     import secrets
@@ -122,11 +128,6 @@ app.add_middleware(
 
 app.include_router(fleet_router, prefix="/api/v1")
 app.include_router(supervisor_router, prefix="/api/v1")
-
-
-def _repo_root() -> Path:
-    """openmanus_mcp/api/app.py → parents[3] == repository root."""
-    return Path(__file__).resolve().parents[3]
 
 
 def _list_doc_filenames(repo: Path) -> list[str]:

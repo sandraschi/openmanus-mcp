@@ -1,12 +1,12 @@
-param(
+﻿param(
     [switch]$Headless,
     [switch]$BackendOnly,
     [switch]$Build,
     [switch]$Engine,
     [switch]$NoBrowser,
     [int]$BackendPort = 10768,
-    [int]$FrontendPort = 10769,
-    [switch]$ReuseIfRunning)
+    [int]$FrontendPort = 10769
+)
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $FleetStartPath = Join-Path $RepoRoot "scripts\FleetStartMode.ps1"
@@ -17,21 +17,9 @@ if (-not (Test-Path -LiteralPath $FleetStartPath)) {
 . $FleetStartPath
 $FleetStart = Initialize-FleetStartMode @PSBoundParameters
 Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
+Stop-FleetPortSquatters -Ports @($BackendPort, $FrontendPort) -Label "openmanus-mcp"
 
-$portResolve = @{
-    Ports      = @($BackendPort, $FrontendPort)
-    Label      = "openmanus-mcp"
-    AllowReuse = $ReuseIfRunning
-}
-if ($ReuseIfRunning) {
-    $portResolve.HealthChecks = @{
-        $BackendPort = "http://127.0.0.1:$BackendPort/api/v1/health"
-        $FrontendPort = "http://127.0.0.1:$FrontendPort/"
-    }
-}
-$portState = Resolve-FleetPortConflict @portResolve
-if ($portState.Action -eq 'Blocked') { exit 1 }
-if ($portState.Reuse) { return }
+if (-not (Assert-FleetPortsAvailable -Ports @($BackendPort, $FrontendPort) -Label "openmanus-mcp")) { exit 1 }
 
 # SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
 # Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev - WEBAPP_STANDARDS lifecycle)
