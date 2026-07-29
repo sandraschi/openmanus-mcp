@@ -1,118 +1,36 @@
+﻿# Fleet unified launcher - do not edit logic here.
+# Change fleet-start.config.ps1 at the repo root instead.
 param(
     [switch]$Headless,
     [switch]$BackendOnly,
-    [switch]$Build,
-    [switch]$Engine,
+    [switch]$FrontendOnly,
     [switch]$NoBrowser,
-    [int]$BackendPort = 10768,
-    [int]$FrontendPort = 10769,
-    [switch]$ReuseIfRunning)
+    [switch]$ReuseIfRunning
+)
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-$FleetStartPath = Join-Path $RepoRoot "scripts\FleetStartMode.ps1"
-if (-not (Test-Path -LiteralPath $FleetStartPath)) {
-    Write-Host "ERROR: Missing vendored launcher helper: $FleetStartPath" -ForegroundColor Red
+$ErrorActionPreference = 'Stop'
+$ReposRoot = if ($env:FLEET_REPOS_ROOT) { $env:FLEET_REPOS_ROOT } else { 'D:\Dev\repos' }
+$EnginePath = Join-Path $ReposRoot 'mcp-central-docs\scripts\Invoke-FleetWebappStart.ps1'
+if (-not (Test-Path -LiteralPath $EnginePath)) {
+    Write-Host "ERROR: Missing fleet start engine: $EnginePath" -ForegroundColor Red
     exit 1
 }
-. $FleetStartPath
-$FleetStart = Initialize-FleetStartMode @PSBoundParameters
-Enter-FleetHeadlessConsole -Headless:$Headless -BackendOnly:$BackendOnly
+. $EnginePath
 
-$portResolve = @{
-    Ports      = @($BackendPort, $FrontendPort)
-    Label      = "openmanus-mcp"
-    AllowReuse = $ReuseIfRunning
-}
-if ($ReuseIfRunning) {
-    $portResolve.HealthChecks = @{
-        $BackendPort = "http://127.0.0.1:$BackendPort/api/v1/health"
-        $FrontendPort = "http://127.0.0.1:$FrontendPort/"
+$configCandidates = @(
+    (Join-Path $PSScriptRoot 'fleet-start.config.ps1'),
+    (Join-Path (Split-Path -Parent $PSScriptRoot) 'fleet-start.config.ps1')
+)
+$configPath = $null
+foreach ($candidate in $configCandidates) {
+    if (Test-Path -LiteralPath $candidate) {
+        $configPath = $candidate
+        break
     }
 }
-$portState = Resolve-FleetPortConflict @portResolve
-if ($portState.Action -eq 'Blocked') { exit 1 }
-if ($portState.Reuse) { return }
-
-# SOTA webapp: FastAPI 10768, Vite 10769. Run from repo root: .\web_sota\start.ps1
-# Optional: .\web_sota\start.ps1 -Build  (runs npm run build before dev - WEBAPP_STANDARDS lifecycle)
-$ApiHealth = "http://127.0.0.1:$BackendPort/api/v1/health"
-$MaxWaitSec = 90
-
-if (Test-Path (Join-Path $PSScriptRoot "package.json")) {
-    $WebSotaRoot = $PSScriptRoot
-    $RepoRoot = Split-Path -Parent $WebSotaRoot
-} else {
-    $RepoRoot = $PSScriptRoot
-    $WebSotaRoot = Join-Path $RepoRoot "web_sota"
+if (-not $configPath) {
+    Write-Host 'ERROR: Missing fleet-start.config.ps1 (repo root or beside start.ps1).' -ForegroundColor Red
+    exit 1
 }
 
-# 1. Load OPENMANUS_ROOT from .env if not already set
-$envFile = Join-Path $RepoRoot ".env"
-if (Test-Path $envFile) {
-    Get-Content $envFile | Where-Object { $_ -match "^OPENMANUS_ROOT=(.+)" } | ForEach-Object {
-        $val = $matches[1].Trim().Trim('"').Trim("'")
-        if (-not $env:OPENMANUS_ROOT) { $env:OPENMANUS_ROOT = $val }
-    }
-}
-
-# 2. Optionally Start OpenManus Engine (CLI)
-if ($Engine) {
-    if (-not $env:OPENMANUS_ROOT) {
-        Write-Host "WARNING: -Engine requested but OPENMANUS_ROOT is not set in environment or .env" -ForegroundColor Yellow
-    } elseif (-not (Test-Path $env:OPENMANUS_ROOT)) {
-        Write-Host "ERROR: OPENMANUS_ROOT points to non-existent path: $($env:OPENMANUS_ROOT)" -ForegroundColor Red
-    } else {
-        Write-Host "Launching OpenManus CLI in new window (Root: $($env:OPENMANUS_ROOT)) ..." -ForegroundColor Cyan
-        $engineTitle = "OpenManus Engine (Bridge: $FrontendPort)"
-        # Use Start-Process with powershell to keep a persistent window
-        Start-Process powershell -ArgumentList "-NoExit", "-Command", "`$Host.UI.RawUI.WindowTitle = '$engineTitle'; cd '$($env:OPENMANUS_ROOT)'; uv run python main.py"
-    }
-}
-
-
-$env:OPENMANUS_MCP_API_PORT = "$BackendPort"
-$env:OPENMANUS_MCP_API_HOST = "127.0.0.1"
-$env:OPENMANUS_MCP_UI_PORT = "$FrontendPort"
-
-Write-Host "Starting FastAPI backend on $BackendPort ..."
-$backendCmd = "Set-Location '$RepoRoot'; `$env:OPENMANUS_MCP_API_PORT='$BackendPort'; `$env:OPENMANUS_MCP_API_HOST='127.0.0.1'; uv run --project '$RepoRoot' python -m openmanus_mcp.run_api"
-$backendProc = Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Normal", "-Command", $backendCmd -PassThru
-
-$waited = 0
-$BackendStarted = $false
-while ($waited -lt $MaxWaitSec) {
-    try {
-        $r = Invoke-WebRequest -Uri $ApiHealth -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop
-        if ($r.StatusCode -eq 200) {
-            $BackendStarted = $true
-            Write-Host "Backend OK: $ApiHealth"
-            break
-        }
-    } catch {
-        if (-not $backendProc.HasExited) { Start-Sleep -Seconds 2 }
-        $waited += 2
-    }
-}
-if (-not $BackendStarted) {
-    Write-Host "WARNING: Backend did not respond within ${MaxWaitSec}s. Check uv run from repo root."
-}
-
-if (-not $FleetStart.RunFrontend) {
-    while ($true) { Start-Sleep -Seconds 60 }
-}
-
-Write-Host "Starting Vite on $FrontendPort ..."
-Set-Location $WebSotaRoot
-if (-not (Test-Path "node_modules")) {
-    npm install
-}
-if ($Build) {
-    Write-Host "npm run build (Build switch) ..."
-    npm run build
-}
-$env:VITE_DEV_PORT = "$FrontendPort"
-$env:VITE_API_TARGET = "http://127.0.0.1:$BackendPort"
-npm run dev -- --port $FrontendPort --host 127.0.0.1
-
-
-
+Start-FleetWebapp @PSBoundParameters -ConfigPath $configPath -LauncherRoot $PSScriptRoot
