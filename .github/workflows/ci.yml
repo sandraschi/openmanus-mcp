@@ -5,51 +5,8 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
-  python:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: "latest"
-
-      - name: Sync (dev)
-        run: uv sync --extra dev
-
-      - name: Pre-commit
-        run: uv run pre-commit run --all-files
-
-      - name: Pytest
-        run: uv run pytest
-
-      - name: Build Wheel
-        run: uv build
-
-      - name: Build MCPB (simulated)
-        run: |
-          mkdir -p dist
-          cp dist/*.whl dist/openmanus-mcp.mcpb
-
-
-  web:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web_sota
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: web_sota/package-lock.json
-
-      - name: npm ci
-        run: npm ci
-
-      - name: Build
-        run: npm run build
+  ci:
+    uses: sandraschi/fleet-ci/.github/workflows/hybrid.yml@v1
