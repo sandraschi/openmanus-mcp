@@ -9,10 +9,7 @@ _BUILTIN: dict[ConnectorKind, ConnectorInfo] = {
         kind=ConnectorKind.EMAIL,
         title="Email / inbox",
         summary="Inbox triage, drafts, and weeding via email-mcp (IMAP/SMTP).",
-        mcp_hint=(
-            "email-mcp — use when the user has Cursor MCP `emailops` "
-            "or stdio email server configured."
-        ),
+        mcp_hint=("email-mcp — use when the user has Cursor MCP `emailops` or stdio email server configured."),
         proactive_prompt=(
             "Proactive inbox weeding: list unread or stale threads, "
             "propose archive/delete rules with safety checks, "

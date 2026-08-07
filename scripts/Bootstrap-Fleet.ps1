@@ -120,7 +120,7 @@ if (-not (Test-Path (Join-Path $RepoRoot.Path "examples"))) {
 
 $pywinPy = Join-Path $PyWinAutoRoot ".venv\Scripts\python.exe"
 if (-not (Test-Path $pywinPy)) {
-    Write-Warning "pywinauto venv python not found at $pywinPy — edit generated snippet manually."
+    Write-Warning "pywinauto venv python not found at $pywinPy - edit generated snippet manually."
     $pywinPy = "REPLACE_WITH_ABSOLUTE_PATH_TO_PYWINAUTO_VENV_PYTHON"
 }
 
@@ -144,4 +144,4 @@ $json = $snippet | ConvertTo-Json -Depth 10
 Write-Host "`nWrote: $GeneratedSnippet"
 Write-Host "Merge mcpServers into your Cursor MCP JSON (User or Project)."
 Write-Host "Start openmanus dashboard: .\web_sota\start.ps1"
-Write-Host "pywinauto-mcp: no upstream webapp in repo today — MCP tools only."
+Write-Host "pywinauto-mcp: no upstream webapp in repo today - MCP tools only."

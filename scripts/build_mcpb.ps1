@@ -1,4 +1,4 @@
-# build_mcpb.ps1 — openmanus-mcp SOTA Builder
+# build_mcpb.ps1 - openmanus-mcp SOTA Builder
 # Creates the .mcpb bundle for standalone distribution.
 
 $projectName = "openmanus-mcp"

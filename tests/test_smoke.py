@@ -22,7 +22,6 @@ async def test_bridge_status() -> None:
     assert "job_store_path" in r["result"]
 
 
-
 @pytest.mark.asyncio
 async def test_bridge_unknown_op() -> None:
     r = await openmanus_bridge("bogus_operation")

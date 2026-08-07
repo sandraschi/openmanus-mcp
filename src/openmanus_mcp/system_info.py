@@ -15,7 +15,7 @@ def _list_gpus_windows() -> list[dict[str, Any]]:
     gpus: list[dict[str, Any]] = []
     try:
         pwsh = shutil.which("powershell.exe") or "powershell.exe"
-        proc = subprocess.run(  # noqa: S603
+        proc = subprocess.run(
             [
                 pwsh,
                 "-NoProfile",
@@ -52,7 +52,7 @@ def _list_gpus_darwin() -> list[dict[str, Any]]:
     gpus: list[dict[str, Any]] = []
     try:
         profiler = shutil.which("system_profiler") or "/usr/sbin/system_profiler"
-        proc = subprocess.run(  # noqa: S603
+        proc = subprocess.run(
             [profiler, "SPDisplaysDataType"],
             capture_output=True,
             text=True,
@@ -76,7 +76,7 @@ def _list_gpus_linux() -> list[dict[str, Any]]:
     gpus: list[dict[str, Any]] = []
     try:
         smi = shutil.which("nvidia-smi") or "nvidia-smi"
-        proc = subprocess.run(  # noqa: S603
+        proc = subprocess.run(
             [smi, "--query-gpu=name", "--format=csv,noheader"],
             capture_output=True,
             text=True,
@@ -110,17 +110,18 @@ def list_gpus() -> dict[str, Any]:
         gpus = _list_gpus_linux()
 
     targets = ("RTX", "RADEON", "ARC", "APPLE M", "MIRO", "TESLA", "A100", "H100")
-    suggest_local_llm = any(
-        any(x in (g.get("name") or "").upper() for x in targets) for g in gpus
-    )
+    suggest_local_llm = any(any(x in (g.get("name") or "").upper() for x in targets) for g in gpus)
 
     return {
         "platform": plat,
         "gpus": gpus,
         "suggest_local_llm": suggest_local_llm,
     }
+
+
 def main() -> None:
     import json
+
     res = list_gpus()
     print(json.dumps(res, indent=2))
 

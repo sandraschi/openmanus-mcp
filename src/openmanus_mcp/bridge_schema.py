@@ -78,8 +78,7 @@ def build_mcp_tools_manifest(settings: Settings) -> dict[str, Any]:
         "server": "openmanus-mcp",
         "stdio_tool": "openmanus_bridge",
         "description": (
-            "Unified bridge for OpenManus runner, validation, and async jobs. "
-            "Same operations via MCP stdio or REST."
+            "Unified bridge for OpenManus runner, validation, and async jobs. Same operations via MCP stdio or REST."
         ),
         "operations": list(BRIDGE_OPERATIONS),
         "operation_names": list(BRIDGE_OPERATION_NAMES),

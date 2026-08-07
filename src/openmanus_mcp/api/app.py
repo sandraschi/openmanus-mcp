@@ -50,6 +50,7 @@ from openmanus_mcp.system_info import list_gpus as _list_gpus_raw
 
 try:
     import psutil
+
     HAS_PSUTIL = True
 except ImportError:
     HAS_PSUTIL = False
@@ -86,6 +87,7 @@ def _repo_root() -> Path:
 _API_KEY = os.environ.get("OPENMANUS_MCP_API_KEY", "")
 if not _API_KEY:
     import secrets
+
     _API_KEY = secrets.token_hex(32)
     _key_file = _repo_root() / ".api_key"
     try:
@@ -488,6 +490,7 @@ async def health() -> dict[str, Any]:
 async def capabilities() -> dict[str, Any]:
     """Runtime capability introspection endpoint (WEBAPP_STANDARDS.md §1.4)."""
     import datetime
+
     return {
         "status": "ok",
         "server": {"name": "openmanus-mcp", "version": __version__, "fastmcp": "3.2"},
@@ -497,8 +500,13 @@ async def capabilities() -> dict[str, Any]:
             "atomic_count": 6,
             "portmanteau_tools": ["openmanus_bridge"],
             "atomic_tools": [
-                "status", "validate", "run_prompt", "run_prompt_async", "job_status",
-                "bash", "computer",
+                "status",
+                "validate",
+                "run_prompt",
+                "run_prompt_async",
+                "job_status",
+                "bash",
+                "computer",
             ],
         },
         "features": {

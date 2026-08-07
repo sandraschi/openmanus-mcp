@@ -15,12 +15,9 @@ def _pytest_openmanus_root_dir(tmp_path_factory: pytest.TempPathFactory) -> str:
 
 
 @pytest.fixture(autouse=True)
-def _force_test_openmanus_root(
-    monkeypatch: pytest.MonkeyPatch, _pytest_openmanus_root_dir: str
-) -> None:
+def _force_test_openmanus_root(monkeypatch: pytest.MonkeyPatch, _pytest_openmanus_root_dir: str) -> None:
     """Prevent developer .env OPENMANUS_ROOT from spawning real OpenManus during TestClient runs."""
     monkeypatch.setenv("OPENMANUS_ROOT", _pytest_openmanus_root_dir)
-
 
     yield
     reset_job_stores_for_tests()
@@ -40,4 +37,3 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 def is_integration(request: pytest.FixtureRequest) -> bool:
     """Boolean flag to skip or branch based on --integration cli arg."""
     return bool(request.config.getoption("--integration"))
-

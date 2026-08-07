@@ -27,19 +27,13 @@ class Settings(BaseSettings):
     api_port: int = Field(default=10768, description="env OPENMANUS_MCP_API_PORT")
     runner_timeout_s: float = Field(
         default=300.0,
-        description=(
-            "Hard timeout (seconds) for a single OpenManus subprocess run. "
-            "Env OPENMANUS_RUNNER_TIMEOUT_S."
-        ),
+        description=("Hard timeout (seconds) for a single OpenManus subprocess run. Env OPENMANUS_RUNNER_TIMEOUT_S."),
     )
     job_store_max_completed: int = Field(
         default=100,
         ge=1,
         le=10_000,
-        description=(
-            "Max completed async jobs kept in memory (FIFO eviction). "
-            "Env OPENMANUS_JOB_STORE_MAX_COMPLETED."
-        ),
+        description=("Max completed async jobs kept in memory (FIFO eviction). Env OPENMANUS_JOB_STORE_MAX_COMPLETED."),
     )
     job_store_path: Path = Field(
         default=Path.home() / ".openmanus-mcp" / "jobs.json",
@@ -57,10 +51,7 @@ class Settings(BaseSettings):
     )
     supervisor_enabled: bool = Field(
         default=False,
-        description=(
-            "Background supervisor tick + schedules. "
-            "Env OPENMANUS_SUPERVISOR_ENABLED (true/false)."
-        ),
+        description=("Background supervisor tick + schedules. Env OPENMANUS_SUPERVISOR_ENABLED (true/false)."),
         validation_alias=AliasChoices("OPENMANUS_SUPERVISOR_ENABLED", "SUPERVISOR_ENABLED"),
     )
     supervisor_tick_s: float = Field(
@@ -82,10 +73,7 @@ class Settings(BaseSettings):
         default=24_000,
         ge=1024,
         le=200_000,
-        description=(
-            "Max characters when inlining a SKILL.md into chat. "
-            "Env OPENMANUS_MAX_SKILL_INJECT_CHARS."
-        ),
+        description=("Max characters when inlining a SKILL.md into chat. Env OPENMANUS_MAX_SKILL_INJECT_CHARS."),
         validation_alias=AliasChoices("OPENMANUS_MAX_SKILL_INJECT_CHARS", "MAX_SKILL_INJECT_CHARS"),
     )
 

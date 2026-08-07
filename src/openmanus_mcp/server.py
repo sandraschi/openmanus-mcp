@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import sys
 import os
+import sys
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -93,6 +93,7 @@ bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
 if bridge_urls:
     try:
         from fastmcp.server import create_proxy
+
         for url in bridge_urls.split(","):
             url = url.strip()
             if url:
@@ -444,15 +445,9 @@ def openmanus_task_template(topic: str = "general") -> str:
     Technical Rationale: Native FastMCP 3.2 prompts for UI/Agent selection.
     """
     if topic == "code":
-        return (
-            "Write a high-performance Python script that implements... "
-            "and verify it with ruff."
-        )
+        return "Write a high-performance Python script that implements... and verify it with ruff."
     if topic == "research":
-        return (
-            "Search the web for the latest technical specifications of... "
-            "and summarize in markdown."
-        )
+        return "Search the web for the latest technical specifications of... and summarize in markdown."
     return "Execute the following task using the OpenManus agent: "
 
 
@@ -493,5 +488,5 @@ async def openmanus_sample_relay(query: str, ctx: Context) -> str:
         log.warning("sampling_unavailable", exc=str(exc))
         return (
             f"[sampling unavailable: {exc}] "
-            "Tip: use openmanus_bridge(\"run_prompt\", prompt=...) to execute the task directly."
+            'Tip: use openmanus_bridge("run_prompt", prompt=...) to execute the task directly.'
         )

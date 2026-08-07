@@ -6,6 +6,7 @@ import {
   Code2,
   Home,
   Layers,
+  ScrollText,
   LayoutGrid,
   Menu,
   MessageSquare,
@@ -53,6 +54,10 @@ const projectNav: { to: string; label: string; icon: React.ComponentType<{ class
   { to: "/api-docs", label: "API Docs", icon: Code2 },
 ];
 
+const metaNav: { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { to: "/logs", label: "Logs", icon: ScrollText },
+];
+
 function SidebarNav({
   collapsed,
   onNavigate,
@@ -95,6 +100,13 @@ function SidebarNav({
       <div className="space-y-1">
         {!collapsed && <div className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Project</div>}
         {projectNav.map((n) => (
+          <Item key={n.to} {...n} />
+        ))}
+      </div>
+      <div className="my-4 border-t border-border/50" />
+      <div className="space-y-1">
+        {!collapsed && <div className="px-3 pb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Meta</div>}
+        {metaNav.map((n) => (
           <Item key={n.to} {...n} />
         ))}
       </div>
@@ -158,15 +170,12 @@ export function AppLayout() {
               </span>
             )}
           </NavLink>
+          <Button variant="ghost" size="icon" className="ml-auto" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle sidebar">
+            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+          </Button>
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-6">
           <SidebarNav collapsed={!sidebarOpen} />
-        </div>
-        <div className="border-t border-border/80 p-3">
-          <Button variant="ghost" className="w-full" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle sidebar">
-            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-          {sidebarOpen && <p className="mt-2 text-center text-xs text-muted-foreground">Iron Shell · 10769</p>}
         </div>
       </aside>
 

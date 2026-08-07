@@ -1,12 +1,13 @@
-﻿set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
+set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
+import 'scripts/just/fleet.just'
 
-# ── Dashboard ─────────────────────────────────────────────────────────────────
+# --- Dashboard ---
 
 # Open the interactive recipe dashboard in the browser
 default:
     @just --list
 
-# ── Quality ───────────────────────────────────────────────────────────────────
+# --- Quality ---
 
 # Execute Ruff linting
 lint:
@@ -29,7 +30,7 @@ install:
 test:
     uv run pytest
 
-# ── Hardening ─────────────────────────────────────────────────────────────────
+# --- Hardening ---
 
 # Execute Bandit security audit
 check-sec:
@@ -43,19 +44,19 @@ audit-deps:
 check-glama:
     uv run python -c "import json, pathlib; json.load(pathlib.Path('glama.json').open(encoding='utf-8')); print('glama.json: OK')"
 
-# ── Fleet ─────────────────────────────────────────────────────────────────────
+# --- Fleet ---
 
 # Bootstrap sibling repos and generate snippets (PowerShell)
 bootstrap-fleet:
-    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Bootstrap-Fleet.ps1
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Bootstrap-Fleet.ps1
 
-# ── MCPB ──────────────────────────────────────────────────────────────────────
+# --- MCPB ---
 
 # Build the .mcpb standalone bundle (SOTA v2.0)
 build-mcpb:
-    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build_mcpb.ps1
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build_mcpb.ps1
 
-# ── Manus Core ────────────────────────────────────────────────────────────────
+# --- Manus Core ---
 
 # Detect OpenManus local installation
 detect:
@@ -73,7 +74,7 @@ bridge-test op="validate":
 diag:
     uv run python -m openmanus_mcp.system_info
 
-# ── Webapp ────────────────────────────────────────────────────────────────────
+# --- Webapp ---
 
 # Build Vite production assets
 build-web:
@@ -82,9 +83,9 @@ build-web:
 
 # Start dashboard with port recovery (PowerShell)
 start-web *ARGS:
-    pwsh.exe -NoProfile -ExecutionPolicy Bypass -File web_sota/start.ps1 {{ARGS}}
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File web_sota/start.ps1 {{ARGS}}
 
-# ── System ────────────────────────────────────────────────────────────────────
+# --- System ---
 
 # Run the MCP server over stdio (default)
 run:
@@ -98,3 +99,8 @@ api:
 stats:
     uv run python tools/repo_stats.py
 
+# Bootstrap: install dev deps + pre-commit hook
+bootstrap:
+    uv sync --group dev
+    uv run pre-commit install
+    Write-Host "Pre-commit hooks installed." -ForegroundColor Green

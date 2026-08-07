@@ -90,9 +90,7 @@ def _truncate(text: str, limit: int) -> tuple[str, bool]:
         return text, False
     half = limit // 2
     return (
-        text[:half]
-        + f"\n... [TRUNCATED — {len(text)} chars total, showing first+last {half}] ...\n"
-        + text[-half:],
+        text[:half] + f"\n... [TRUNCATED — {len(text)} chars total, showing first+last {half}] ...\n" + text[-half:],
         True,
     )
 
@@ -129,9 +127,7 @@ async def _drain_stream(stream: asyncio.StreamReader, buf: list[str]) -> None:
         buf.append(line.decode("utf-8", errors="replace"))
 
 
-async def _create_process(
-    python: str, script: Path, prompt: str, openmanus_root: Path
-) -> asyncio.subprocess.Process:
+async def _create_process(python: str, script: Path, prompt: str, openmanus_root: Path) -> asyncio.subprocess.Process:
     """Create the subprocess with proper stdin handling."""
     use_argv_prompt = script.name == "main.py" and "\n" not in prompt and "\r" not in prompt
 

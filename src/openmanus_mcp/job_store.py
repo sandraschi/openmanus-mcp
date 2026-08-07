@@ -122,4 +122,3 @@ def api_job_store() -> JobStore:
 def reset_job_stores_for_tests() -> None:
     """Clear singletons (pytest only)."""
     _registry.clear()
-

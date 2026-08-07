@@ -44,4 +44,3 @@ def test_pending_not_evicted_by_fifo(tmp_path: object) -> None:
     store.set_result("b", _ok_result())
     # Two completed — max 1 — one evicted
     assert store.stored_count() == 1
-

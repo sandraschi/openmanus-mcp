@@ -78,9 +78,7 @@ def dry_run_openmanus_bridge(
     checks.append({"check": "entry_point_enum", "ok": True, "entry_point": ep})
 
     root_ok = info is not None and info.looks_valid
-    checks.append(
-        {"check": "openmanus_root_valid", "ok": root_ok, "path": str(info.root) if info else None}
-    )
+    checks.append({"check": "openmanus_root_valid", "ok": root_ok, "path": str(info.root) if info else None})
 
     if op in ("run_prompt", "run_prompt_async") and not root_ok:
         return {
@@ -123,6 +121,8 @@ def dry_run_openmanus_bridge(
         },
         "execution_time_ms": round((time.perf_counter() - t0) * 1000, 2),
     }
+
+
 def main() -> None:
     import json
     import sys

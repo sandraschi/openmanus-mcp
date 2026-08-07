@@ -327,6 +327,8 @@ def assemble_chat_system_layers(
             }
         )
     return out
+
+
 def main() -> None:
     from openmanus_mcp.settings import get_settings
 

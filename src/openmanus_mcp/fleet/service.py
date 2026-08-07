@@ -31,11 +31,7 @@ _REPO_ALLOW = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 
 def _load_catalog_raw() -> FleetCatalogFile:
-    raw = (
-        resources.files("openmanus_mcp.data")
-        .joinpath("fleet_catalog.json")
-        .read_text(encoding="utf-8")
-    )
+    raw = resources.files("openmanus_mcp.data").joinpath("fleet_catalog.json").read_text(encoding="utf-8")
     return FleetCatalogFile.model_validate_json(raw)
 
 

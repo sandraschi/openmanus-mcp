@@ -55,10 +55,7 @@ def _gpu_hint() -> tuple[float, int]:
         return 0.0, 0
     try:
         # PowerShell command for GPU info wrapped to fit line limit
-        raw_cmd = (
-            "Get-CimInstance Win32_VideoController | "
-            "ForEach-Object { \"$($_.Name)|$($_.AdapterRAM)\" }"
-        )
+        raw_cmd = 'Get-CimInstance Win32_VideoController | ForEach-Object { "$($_.Name)|$($_.AdapterRAM)" }'
         res = subprocess.run(
             ["powershell", "-NoProfile", "-NonInteractive", "-STA", "-Command", raw_cmd],
             capture_output=True,

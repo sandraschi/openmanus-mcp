@@ -37,7 +37,7 @@ def test_format_skills_for_prompt_xml() -> None:
     metas = discover_skills(extra_dirs_semicolon="")
     text = format_skills_for_prompt(metas)
     assert "<available_skills>" in text
-    assert '<skill name=' in text
+    assert "<skill name=" in text
     assert "location=" in text
 
 

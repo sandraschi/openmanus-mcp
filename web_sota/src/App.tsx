@@ -12,6 +12,7 @@ import ToolsPage from "./pages/Tools";
 import StatusAuditPage from "./pages/StatusAudit";
 import ChatPage from "./pages/ChatPage";
 import ApiDocsPage from "./pages/ApiDocs";
+import Logging from "./pages/Logging";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/status" element={<StatusAuditPage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/api-docs" element={<ApiDocsPage />} />
+        <Route path="/logs" element={<Logging />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

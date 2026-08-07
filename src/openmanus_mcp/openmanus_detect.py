@@ -29,6 +29,8 @@ def describe_openmanus(root: Path | None) -> OpenManusInfo | None:
         has_config_example=(r / "config" / "config.example.toml").is_file(),
         python_min_hint="3.12 (per upstream README)",
     )
+
+
 def main() -> None:
     import sys
 
