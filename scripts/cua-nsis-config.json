@@ -1,0 +1,14 @@
+{
+    "product_name": "Openmanus MCP",
+    "install_dir": "%LOCALAPPDATA%\\Openmanus MCP",
+    "operator_exe": "openmanus-mcp-native.exe",
+    "backend_process_names": ["openmanus-mcp-native", "openmanus-mcp-backend"],
+    "backend_port": 10700,
+    "health_path": "/api/v1/health",
+    "diagnostics_path": "/api/v1/diagnostics",
+    "feature_smoke_path": "/api/v1/system/info",
+    "window_title_re": "Openmanus MCP",
+    "nsis_glob": "native/target/release/bundle/nsis/Openmanus MCP_*_x64-setup.exe",
+    "bridge_ok_text": "REST bridge reachable",
+    "uninstall_registry_filter": "*Openmanus MCP*"
+}
