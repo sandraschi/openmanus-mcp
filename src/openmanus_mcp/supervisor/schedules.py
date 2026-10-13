@@ -23,7 +23,7 @@ class ScheduleCreate(BaseModel):
     enabled: bool = True
     connector_kind: str | None = Field(
         default=None,
-        description="Optional hint: email | yahboom | calibre — prepended to prompt in worker.",
+        description="Optional hint: email | yahboom | calibre - prepended to prompt in worker.",
     )
 
 

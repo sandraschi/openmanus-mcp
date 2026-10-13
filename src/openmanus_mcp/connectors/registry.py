@@ -1,4 +1,4 @@
-"""Registry of built-in connectors (no live MCP calls here — wiring is client-side)."""
+"""Registry of built-in connectors (no live MCP calls here - wiring is client-side)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ _BUILTIN: dict[ConnectorKind, ConnectorInfo] = {
         kind=ConnectorKind.EMAIL,
         title="Email / inbox",
         summary="Inbox triage, drafts, and weeding via email-mcp (IMAP/SMTP).",
-        mcp_hint=("email-mcp — use when the user has Cursor MCP `emailops` or stdio email server configured."),
+        mcp_hint=("email-mcp - use when the user has Cursor MCP `emailops` or stdio email server configured."),
         proactive_prompt=(
             "Proactive inbox weeding: list unread or stale threads, "
             "propose archive/delete rules with safety checks, "
@@ -28,7 +28,7 @@ _BUILTIN: dict[ConnectorKind, ConnectorInfo] = {
         kind=ConnectorKind.YAHBOOM,
         title="Yahboom robot",
         summary="Patrol, sensors, and motion via yahboom-mcp when connected.",
-        mcp_hint="yahboom-mcp — security patrol / GPIO / camera workflows.",
+        mcp_hint="yahboom-mcp - security patrol / GPIO / camera workflows.",
         proactive_prompt=(
             "Security patrol plan for a Yahboom-class rover: "
             "define a safe patrol loop (start/stop, obstacle backoff, log anomalies), "
@@ -47,7 +47,7 @@ _BUILTIN: dict[ConnectorKind, ConnectorInfo] = {
         kind=ConnectorKind.CALIBRE,
         title="Calibre library",
         summary="Metadata, shelves, and RAG-style book discovery via calibre-mcp.",
-        mcp_hint="calibre-mcp / CalibreMCP — library query and recommendations.",
+        mcp_hint="calibre-mcp / CalibreMCP - library query and recommendations.",
         proactive_prompt=(
             "Calibre book recommendations: infer reading taste from recent shelves or tags "
             "(or ask for 3 favorite titles), query the library for gaps, "

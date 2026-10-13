@@ -1,4 +1,4 @@
-"""Concurrency controls for OpenManus MCP server – adaptive run limiting and GPU detection."""
+"""Concurrency controls for OpenManus MCP server - adaptive run limiting and GPU detection."""
 
 from __future__ import annotations
 

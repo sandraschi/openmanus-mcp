@@ -244,7 +244,7 @@ async def glama_manifest() -> dict[str, Any]:
 
 @app.get("/api/v1/docs")
 async def docs_index() -> dict[str, Any]:
-    """List markdown files under docs/ (dynamic — no hardcoded manifest)."""
+    """List markdown files under docs/ (dynamic - no hardcoded manifest)."""
     return {"documents": _list_doc_filenames(_repo_root())}
 
 
@@ -612,7 +612,7 @@ async def run_sync(body: RunRequest) -> RunResponse:
 
 @app.post("/api/v1/run/async", response_model=RunAsyncResponse)
 async def run_async(body: RunAsyncRequest) -> RunAsyncResponse:
-    """Fire-and-forget — returns job_id immediately. Poll /api/v1/run/jobs/{job_id}."""
+    """Fire-and-forget - returns job_id immediately. Poll /api/v1/run/jobs/{job_id}."""
     settings = get_settings()
     info = describe_openmanus(settings.openmanus_root)
     if info is None or not info.looks_valid:

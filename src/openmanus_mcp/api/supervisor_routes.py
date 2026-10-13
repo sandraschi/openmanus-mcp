@@ -66,7 +66,7 @@ async def set_schedule_enabled(schedule_id: str, body: ScheduleEnabledBody) -> S
 
 @router.get("/connectors")
 async def connectors_list() -> dict[str, Any]:
-    """Built-in connector catalog (email / yahboom / calibre) — MCP wiring is client-side."""
+    """Built-in connector catalog (email / yahboom / calibre) - MCP wiring is client-side."""
     return {"connectors": list_connectors()}
 
 

@@ -11,7 +11,7 @@ Supported entry points:
   - run_flow.py (multi-agent DataAnalysis + Manus)
 
 Design constraints:
-  - No pseudo-tty — OpenManus works fine with piped stdio.
+  - No pseudo-tty - OpenManus works fine with piped stdio.
   - asyncio.create_subprocess_exec for non-blocking line streaming.
   - Caller can pass a timeout; default is configurable in Settings.
   - Hard cap: MAX_OUTPUT_CHARS to prevent MCP response blowout.
@@ -90,7 +90,7 @@ def _truncate(text: str, limit: int) -> tuple[str, bool]:
         return text, False
     half = limit // 2
     return (
-        text[:half] + f"\n... [TRUNCATED — {len(text)} chars total, showing first+last {half}] ...\n" + text[-half:],
+        text[:half] + f"\n... [TRUNCATED - {len(text)} chars total, showing first+last {half}] ...\n" + text[-half:],
         True,
     )
 

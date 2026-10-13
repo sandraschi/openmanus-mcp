@@ -1,4 +1,4 @@
-"""FastMCP 3.2 server — portmanteau bridge to OpenManus CLI."""
+"""FastMCP 3.2 server - portmanteau bridge to OpenManus CLI."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ async def server_lifespan(_mcp: FastMCP) -> AsyncIterator[None]:
     if info is None:
         log.warning(
             "openmanus_mcp_startup_warn",
-            message="OPENMANUS_ROOT not set — tools will return setup hints only",
+            message="OPENMANUS_ROOT not set - tools will return setup hints only",
         )
     elif not info.looks_valid:
         log.warning(
@@ -87,7 +87,7 @@ async def server_lifespan(_mcp: FastMCP) -> AsyncIterator[None]:
 
 mcp = FastMCP("openmanus-mcp", lifespan=server_lifespan)
 
-# MCP Bridge — Proxy external MCP servers via MCP_BRIDGE_URLS
+# MCP Bridge - Proxy external MCP servers via MCP_BRIDGE_URLS
 _bridge_proxies: list[str] = []
 bridge_urls = os.getenv("MCP_BRIDGE_URLS", "")
 if bridge_urls:
@@ -196,7 +196,7 @@ async def _handle_run_prompt(
     if ctx.info is None or not ctx.info.looks_valid:
         return {
             "success": False,
-            "message": "OPENMANUS_ROOT is not set or invalid — run validate first",
+            "message": "OPENMANUS_ROOT is not set or invalid - run validate first",
             "error_type": "configuration",
             "execution_time_ms": round((time.perf_counter() - ctx.start) * 1000, 2),
         }
@@ -237,7 +237,7 @@ async def _handle_run_prompt_async(
     if ctx.info is None or not ctx.info.looks_valid:
         return {
             "success": False,
-            "message": "OPENMANUS_ROOT is not set or invalid — run validate first",
+            "message": "OPENMANUS_ROOT is not set or invalid - run validate first",
             "error_type": "configuration",
             "execution_time_ms": round((time.perf_counter() - ctx.start) * 1000, 2),
         }
@@ -390,17 +390,17 @@ async def openmanus_bridge(
     timeout_s: float | None = None,
     job_id: str | None = None,
 ) -> dict[str, Any]:
-    """OPENMANUS_BRIDGE — Control plane for the OpenManus FOSS CLI wrapper.
+    """OPENMANUS_BRIDGE - Control plane for the OpenManus FOSS CLI wrapper.
 
     PORTMANTEAU PATTERN: Single entry point for status/validate/run/async/fleet.
 
     Operations:
-        status           — server + path health check (fast)
-        validate         — detailed OpenManus install validation (fast)
-        run_prompt       — synchronous subprocess run; waits for completion
-        run_prompt_async — fire-and-forget; returns job_id immediately
-        job_status       — poll an async job by job_id
-        fleet            — dynamically discover onboarded fleet members
+        status           - server + path health check (fast)
+        validate         - detailed OpenManus install validation (fast)
+        run_prompt       - synchronous subprocess run; waits for completion
+        run_prompt_async - fire-and-forget; returns job_id immediately
+        job_status       - poll an async job by job_id
+        fleet            - dynamically discover onboarded fleet members
 
     Args:
         operation:    One of: status, validate, run_prompt, run_prompt_async, job_status, fleet.
@@ -453,7 +453,7 @@ def openmanus_task_template(topic: str = "general") -> str:
 
 @mcp.tool()
 async def openmanus_sample_relay(query: str, ctx: Context) -> str:
-    """OPENMANUS_SAMPLE_RELAY — Delegate a sub-task reasoning step to the host LLM via sampling.
+    """OPENMANUS_SAMPLE_RELAY - Delegate a sub-task reasoning step to the host LLM via sampling.
 
     Sends *query* to the MCP client's LLM (e.g. Claude Desktop, Cursor) and returns its
     response. Useful for pre-flight planning, prompt refinement, or OpenManus task
@@ -464,7 +464,7 @@ async def openmanus_sample_relay(query: str, ctx: Context) -> str:
 
     Args:
         query: The question or sub-task to reason about.
-        ctx:   FastMCP context — injected automatically, do not pass manually.
+        ctx:   FastMCP context - injected automatically, do not pass manually.
     """
     log.info("sampling_request", query=query[:120])
     system_prompt = (
@@ -484,7 +484,7 @@ async def openmanus_sample_relay(query: str, ctx: Context) -> str:
         log.info("sampling_response", chars=len(text))
         return text
     except Exception as exc:
-        # Client doesn't support sampling, or transport error — degrade gracefully
+        # Client doesn't support sampling, or transport error - degrade gracefully
         log.warning("sampling_unavailable", exc=str(exc))
         return (
             f"[sampling unavailable: {exc}] "

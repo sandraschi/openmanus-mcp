@@ -86,7 +86,7 @@ def dry_run_openmanus_bridge(
             "would_run_subprocess": False,
             "checks": checks,
             "error_type": "configuration",
-            "message": "OPENMANUS_ROOT is not set or invalid — fix before running",
+            "message": "OPENMANUS_ROOT is not set or invalid - fix before running",
             "recovery_options": [
                 "Set OPENMANUS_ROOT in .env to a full OpenManus clone",
                 "Run operation=validate via MCP for details",
@@ -109,9 +109,9 @@ def dry_run_openmanus_bridge(
         "would_run_subprocess": would_subprocess,
         "checks": checks,
         "message": (
-            "Dry-run OK — subprocess would start next."
+            "Dry-run OK - subprocess would start next."
             if would_subprocess
-            else "Dry-run OK — no subprocess for this operation."
+            else "Dry-run OK - no subprocess for this operation."
         ),
         "preview": {
             "operation": op,

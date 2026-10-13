@@ -242,7 +242,7 @@ def get_skill_content(skill_id: str, *, extra_dirs_semicolon: str) -> str | None
 
 
 def format_full_skill_system_message(skill_name: str, body: str) -> str:
-    return f"Full skill playbook ({skill_name}) — SKILL.md content:\n\n{body}"
+    return f"Full skill playbook ({skill_name}) - SKILL.md content:\n\n{body}"
 
 
 def prepend_skills_to_run_prompt(
