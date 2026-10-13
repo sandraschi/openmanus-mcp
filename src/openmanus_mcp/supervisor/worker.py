@@ -42,7 +42,7 @@ async def _fire_scheduled_run(ent: ScheduleEntry) -> None:
         await heartbeat_update(
             last_error="scheduled run skipped: OPENMANUS_ROOT missing or invalid",
         )
-        log.warning("supervisor: skip schedule %s — invalid OPENMANUS_ROOT", ent.name)
+        log.warning("supervisor: skip schedule %s - invalid OPENMANUS_ROOT", ent.name)
         return
 
     ep: EntryPoint = "run_flow.py" if ent.entry_point == "run_flow.py" else "main.py"
